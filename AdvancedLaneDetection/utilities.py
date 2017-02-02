@@ -16,8 +16,8 @@ def get_ROI(img, x1, y1, x2, y2):
 def grayscale(img):
     '''Applies the Grayscale transform
     This will return an image with only one color channel'''
+    ##for mpimg use
     #return cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-    # Or use BGR2GRAY if you read an image with cv2.imread()
     return cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
 def colorspace(img, c_space):
