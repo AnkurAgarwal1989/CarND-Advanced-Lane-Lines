@@ -7,21 +7,22 @@ Created on Thu Feb  2 20:35:47 2017
 
 import cv2
 import numpy as np
-import matplotlib.pyplot as plt
 # Functions to detect lanes and fit polynomial over lane lines
-## For first frame or when we lose tracking, use histogram and sliding window based method
-## If tracking. use previous line equation for targeted detection
+# For first frame or lost tracking: use histogram and sliding window
+# If tracking. use previous line equation for targeted detection
 
 '''
-detectLanes: function to detect lanes using a histogram and sliding window method
+detectLanes: function to detect lanes using a histogram and sliding window
 input: bin_img: single channel
        hist_height: height of bottom area to detect peaks on
        sw_height: sliding window height
        sw_width: sliding window width
        side of image: 'left' or 'right'
-output: lane_pixels ((lane_y, lane_x)y and x locations of the putative lane pixels)
+output: lane_pixels ((lane_y, lane_x)y and x locations of lane pixels)
 '''
-def detectLanes(bin_img, hist_height, sw_height, sw_width, num_white, side = 'left'):
+
+
+def detectLanes(bin_img, hist_height, sw_height, sw_width, num_white, side='left'):
     out_img = np.dstack((bin_img, bin_img, bin_img))
     
     lane_pixels = []
@@ -30,8 +31,8 @@ def detectLanes(bin_img, hist_height, sw_height, sw_width, num_white, side = 'le
 
     offset = 0
     
-    #base strip to calc histogram on
-    base_strip = bin_img[-hist_height:, :]
+    # base strip to calc histogram on
+    base_strip = bin_img[-hist_height : , :]
     
     if side == 'left':
         histogram = np.sum(base_strip[:, :midpoint], 0, dtype=np.int)
@@ -59,7 +60,7 @@ def detectLanes(bin_img, hist_height, sw_height, sw_width, num_white, side = 'le
         lane_pixels.append(sw_lane_pixels)
         
         #if they pixels we found are good enough in number, use this new value to slide window
-        if (len(sw_lane_pixels) > num_white):
+        if (len(sw_lane_pixels) >= num_white):
             current_x = np.int(np.mean(nz_pixels_x[sw_lane_pixels]))
             
         #draw the line about the centroid
@@ -125,5 +126,6 @@ def fitLine(img, lane_pixels, degree=2):
     #get values of x for corresponding y
     fit_x = line_fit[0]*plot_y**2 + line_fit[1]*plot_y + line_fit[2]
     line_pts = np.vstack((fit_x, plot_y)).T
-    cv2.polylines(out_img, np.int32(line_pts), color = (255, 255, 0), thickness = 4)
+    
+    cv2.polylines(out_img, np.int32([line_pts]), isClosed=False, color=(255, 255, 0), thickness=4)
     return out_img, line_fit

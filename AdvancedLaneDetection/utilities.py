@@ -38,7 +38,7 @@ def drawPolygon(img, p1, p2, p3, p4):
     out = cv2.polylines(img, [pts], True, (0,255,255))
     return out
 
-#drawPolygon(img, (378, 10), (508, 10), (875, 235), (45, 235) )
+#drawPolygon(img, (380, 10), (505, 10), (875, 235), (45, 235) )
 #drawPolygon(img, (350, 30), (540, 30), (875, 235), (45, 235) )
 
 #Warp an image to an output size by applying M
