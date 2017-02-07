@@ -45,3 +45,6 @@ def drawPolygon(img, p1, p2, p3, p4):
 #out_size is a tuple (640, 240)
 def warpImage(img, M, out_size):
     return (cv2.warpPerspective(img, M, out_size, flags=cv2.INTER_LINEAR))
+
+scale_X = 3.7/430 #(meters/pixels)
+scale_Y = 3.048/34 #(meters/pixels)

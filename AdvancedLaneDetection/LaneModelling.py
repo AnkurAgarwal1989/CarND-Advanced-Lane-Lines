@@ -45,12 +45,18 @@ def detectLanes(bin_img, hist_height, sw_height, sw_width, num_white, side='left
     nz_pixels_x = np.array(nz_pixels[1])
     
     current_x = np.argmax(histogram) + offset
-    
-    for sw in range(0, bin_img.shape[0], sw_height):
-        #points = (x,y)
-        win_p1 = (current_x - sw_width, sw + sw_height)
-        win_p2 = (current_x + sw_width, sw)
         
+    
+    for sw in range(bin_img.shape[0]-1, 0, -sw_height):
+        #points = (x,y)
+        win_p1 = (current_x - sw_width, sw)
+        win_p2 = (current_x + sw_width, sw - sw_height)
+        
+        #draw the line about the centroid
+        cv2.line(out_img, (current_x, win_p2[1]), (current_x, win_p1[1] ), color = (0, 255, 0), thickness=2)
+        #Draw the rectangle around the sliding window
+        cv2.rectangle(out_img, win_p1, win_p2, color=(255, 0, 0))
+        print(sw, sw - sw_height, current_x)
         #find y pixels that belong to lanes
         sw_lane_pixels = ((nz_pixels_x >= win_p1[0]) & (nz_pixels_x < win_p2[0]) & 
                          (nz_pixels_y < win_p1[1]) & (nz_pixels_y >= win_p2[1])).nonzero()[0]
@@ -62,12 +68,7 @@ def detectLanes(bin_img, hist_height, sw_height, sw_width, num_white, side='left
         #if they pixels we found are good enough in number, use this new value to slide window
         if (len(sw_lane_pixels) >= num_white):
             current_x = np.int(np.mean(nz_pixels_x[sw_lane_pixels]))
-            
-        #draw the line about the centroid
-        cv2.line(out_img, (current_x, sw + sw_height), (current_x, sw ), color = (0, 255, 0), thickness=2)
-        #Draw the rectangle around the sliding window
-        cv2.rectangle(out_img, win_p1, win_p2, color=(255, 0, 0))
-        
+
 
     #each lane has some n (n<= imageheigt/windowheight lists of non zero pixels. concatenate to get x,y and then model lines)
     lane_pixels = np.concatenate(lane_pixels)
@@ -86,24 +87,25 @@ input: bin_img: single channel
 output: lane_pixels ((lane_y, lane_x)y and x locations of the putative lane pixels)
 '''
 def trackLanes(bin_img, line_fit, search_width):
-    out_img = np.copy(bin_img)
+    out_img = np.dstack((bin_img, bin_img, bin_img))
     
-    lane_pixels = []
-    # Generate x and y values
-    #linespace for y, we know y is height pixels long
-    plot_y = np.linspace(0, bin_img.shape[0]-1, bin_img.shape[0])
-    #get values of x for corresponding y
-    fit_x = line_fit[0]*plot_y**2 + line_fit[1]*plot_y + line_fit[2]
+    lane_pixels = []    
     
     nz_pixels = bin_img.nonzero()
     nz_pixels_y = np.array(nz_pixels[0])
     nz_pixels_x = np.array(nz_pixels[1])
     
-    lane_pixels = ( (nz_pixels_x > (fit_x[0]*(nz_pixels_y**2) + fit_x[1]*nz_pixels_y + fit_x[2] - search_width) ) & 
-                                   (nz_pixels_x < (fit_x[0]*(nz_pixels_y**2) + fit_x[1]*nz_pixels_y + fit_x[2] + search_width) ) )  
+    # get values of x for corresponding y
+    fit_x = 0
+    for deg,coeff in enumerate(line_fit[::-1]):
+        fit_x += coeff*(nz_pixels_y**deg)
+    
+    lane_pixels = ( (nz_pixels_x > (fit_x - search_width) ) & 
+                                   (nz_pixels_x < (fit_x + search_width) ) )
     
     lane_x = nz_pixels_x[lane_pixels]
     lane_y = nz_pixels_y[lane_pixels]
+    out_img[lane_y, lane_x, :] = (0, 255, 255)
     return out_img, (lane_y, lane_x)
 
 
@@ -124,8 +126,23 @@ def fitLine(img, lane_pixels, degree=2):
     #linespace for y, we know y is height pixels long
     plot_y = np.linspace(0, img.shape[0]-1, img.shape[0])
     #get values of x for corresponding y
-    fit_x = line_fit[0]*plot_y**2 + line_fit[1]*plot_y + line_fit[2]
+    fit_x = 0
+    for deg,coeff in enumerate(line_fit[::-1]):
+        fit_x += coeff*(plot_y**deg)
+    #fit_x = line_fit[0]*plot_y**2 + line_fit[1]*plot_y + line_fit[2]
     line_pts = np.vstack((fit_x, plot_y)).T
     
     cv2.polylines(out_img, np.int32([line_pts]), isClosed=False, color=(255, 255, 0), thickness=4)
     return out_img, line_fit
+
+'''
+getRoC: function returns Radius of Curvature(meters) for a given equation of line
+input: equation of line
+        y: y pixel location of curve
+        scale_x = meters/pixel
+        scale_y = meters/pixel
+        
+'''
+def getRoC(line_fit, y):
+    radius = 1000
+    return radius

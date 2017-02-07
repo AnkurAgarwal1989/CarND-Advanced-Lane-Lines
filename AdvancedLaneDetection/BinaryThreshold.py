@@ -64,12 +64,12 @@ def binary_threshold(roi, R_Range, V_Range, V_init = 140, R_init = 140, bailout 
     
     #We want the number of lane pixels to be within 1% to 3% of the total pixels in image
     minarea = 0.015*total_pixels
-    maxarea = 0.02*total_pixels
+    maxarea = 0.025*total_pixels
     
     while ((nzcount < minarea) | (nzcount >= maxarea)) & (wiggleScope):
         counter += 1
         if (counter == bailout):
-            #print("Unable to find a good value in {} steps. Bailing out!".format(bailout))
+            print("Unable to find a good value in {} steps. Bailing out!".format(bailout))
             nzcount = np.count_nonzero(thresh_img)
             thresh_img = np.zeros_like(thresh_img)
             V_Thresh = V_init
@@ -98,7 +98,7 @@ def binary_threshold(roi, R_Range, V_Range, V_init = 140, R_init = 140, bailout 
             nzcount = np.count_nonzero(thresh_img)
             
         else:
-            #print("Unable to find a good value in range. Bailing out!")
+            print("Unable to find a good value in range. Bailing out!")
             nzcount = np.count_nonzero(thresh_img)
             thresh_img = np.zeros_like(thresh_img)
             V_Thresh = V_init
@@ -106,8 +106,8 @@ def binary_threshold(roi, R_Range, V_Range, V_init = 140, R_init = 140, bailout 
             break
     
     
-    #print("%cnt", nzcount/total_pixels)
-    #print("steps", counter)    
+    print("%cnt", nzcount/total_pixels)
+    print("steps", counter)    
     #print(nzcount, total_pixels)
         
     bin_img = np.dstack((thresh_img, thresh_img, thresh_img))
