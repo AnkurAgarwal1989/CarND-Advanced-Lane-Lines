@@ -5,15 +5,18 @@ Class to hold Vehicle related data. This gets added to the Deque
 import Line
 
 class Car():
-    def __init__(self, N, scale_X, scale_Y, img_shape):
+    def __init__(self, config):
+		
+		N = config['tracking_window']
+		scale_X = config['scale_X']
+		scale_Y = config['scale_Y']
+		#tuple (X, Y)
+		self.image_shape = config['image_shape']
 		
 		self.left_Line = Line(N, scale_X, scale_Y)
 		self.right_Line = Line(N, scale_X, scale_Y)
 	
-		#tuple (X, Y)
-		self.image_shape = img_shape
         # are lanes detected. 0-None, 1-left/right, 2-both
-		
         self.lanes_detected = None
 		
 		# position from center. -ve car towards left, +ve car towards right
