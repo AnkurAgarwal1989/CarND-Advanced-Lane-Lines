@@ -77,7 +77,7 @@ class Line():
 		self.best_fit = np.mean(self.recent_fits, axis = 0)
 	
 	#RoC in meters
-	def calc_RoC(self):
+	def calc_RoC(self, y):
 		self.radius_of_curvature = 1000
 		
 	#position of base of the lane in meters	

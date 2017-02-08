@@ -134,15 +134,3 @@ def fitLine(img, lane_pixels, degree=2):
     
     cv2.polylines(out_img, np.int32([line_pts]), isClosed=False, color=(255, 255, 0), thickness=4)
     return out_img, line_fit
-
-'''
-getRoC: function returns Radius of Curvature(meters) for a given equation of line
-input: equation of line
-        y: y pixel location of curve
-        scale_x = meters/pixel
-        scale_y = meters/pixel
-        
-'''
-def getRoC(line_fit, y):
-    radius = 1000
-    return radius

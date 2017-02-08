@@ -30,11 +30,14 @@ ThresholdRange = namedtuple('ThresholdRange', ['min', 'max', 'dTh'])
     #VthreshValue
 # input ROI image is 3 channel
 # returns a 3channel Binary image (0 and 255)
-def binary_threshold(roi, R_Range, V_Range, V_init = 140, R_init = 140, bailout = 20):
+def binary_threshold(roi, config):
     
-    V_Thresh = V_init
-    R_Thresh = R_init
-    
+    R_Range = config['R_Range']
+    V_Range = config['V_Range']
+    R_Thresh = config['R_init']
+    V_Thresh = config['V_init']
+    bailout = config['bailout']
+        
     thresh_img = np.zeros_like(roi[:, :, 0])
     
     total_pixels = thresh_img.shape[0]*thresh_img.shape[1]
@@ -66,14 +69,13 @@ def binary_threshold(roi, R_Range, V_Range, V_init = 140, R_init = 140, bailout 
     minarea = 0.015*total_pixels
     maxarea = 0.025*total_pixels
     
+    success = True
+    
     while ((nzcount < minarea) | (nzcount >= maxarea)) & (wiggleScope):
         counter += 1
         if (counter == bailout):
             print("Unable to find a good value in {} steps. Bailing out!".format(bailout))
-            nzcount = np.count_nonzero(thresh_img)
-            thresh_img = np.zeros_like(thresh_img)
-            V_Thresh = V_init
-            R_Thresh = R_init
+            success = False
             break
             
         #If there is still scope in moving ranges
@@ -99,11 +101,12 @@ def binary_threshold(roi, R_Range, V_Range, V_init = 140, R_init = 140, bailout 
             
         else:
             print("Unable to find a good value in range. Bailing out!")
-            nzcount = np.count_nonzero(thresh_img)
-            thresh_img = np.zeros_like(thresh_img)
-            V_Thresh = V_init
-            R_Thresh = R_init
+            success = False
             break
+    
+    if not success:
+        nzcount = np.count_nonzero(thresh_img)
+        thresh_img = np.zeros_like(thresh_img)
     
     
     print("%cnt", nzcount/total_pixels)
@@ -111,4 +114,6 @@ def binary_threshold(roi, R_Range, V_Range, V_init = 140, R_init = 140, bailout 
     #print(nzcount, total_pixels)
         
     bin_img = np.dstack((thresh_img, thresh_img, thresh_img))
-    return bin_img, V_Thresh, R_Thresh
+    config['R_init'] = R_Thresh
+    config['V_init'] = V_Thresh
+    return success, bin_img, config

@@ -33,12 +33,15 @@ class CameraCalibration:
         self.DEBUG = debug
         self.images_names = []
         
+        self.calibration = {}
+        
         if self.checkForImages():
             if self.runCalibration():
                 self.writeCalibration();
+                return self.calibration
         else:
             print("Unable to proceed with calibration. Exiting")
-            return
+            return None
         
     #make sure we can find num_images in images_dir
     def checkForImages(self):
@@ -119,10 +122,9 @@ class CameraCalibration:
     def writeCalibration(self):
         #Save calibration file as a pickle
         calib_file_name = os.path.join(self.output_dir,"calibration_pickle.p")
-        calibration = {}
-        calibration["mtx"] = self.mtx
-        calibration["dist"] = self.dist
-        pickle.dump( calibration, open(calib_file_name, "wb"))
+        self.calibration["mtx"] = self.mtx
+        self.calibration["dist"] = self.dist
+        pickle.dump( self.calibration, open(calib_file_name, "wb"))
         print("Calibration written to {}".format(calib_file_name))
 
 
