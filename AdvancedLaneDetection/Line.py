@@ -1,11 +1,13 @@
 '''
 Class to hold Line data.
 We put user facing things here:
-	RoC, distance from center
+RoC, distance from center
 '''
 from collections import deque
+import numpy as np
+
 class Line():
-    def __init__(self, N, scale_X, scale_Y):
+	def __init__(self, N, scale_X, scale_Y):
 		self.frame_memory = N
 		
 		# is it tracking
@@ -14,20 +16,20 @@ class Line():
 		#frames since detection/ tracking
 		self.no_lane_detected_frames = 0
 		
-        # x values of the last n fits of the line
-        self.recent_fits = deque(maxlen = N)
+		# x values of the last n fits of the line
+		self.recent_fits = deque(maxlen = N)
 		
-        #polynomial coefficients averaged over the last n iterations
-        self.best_fit = None  
+		#polynomial coefficients averaged over the last n iterations
+		self.best_fit = None  
 		
-        #polynomial coefficients for the most recent fit
-        self.current_fit = None
+		#polynomial coefficients for the most recent fit
+		self.current_fit = None
 		
-        #radius of curvature of the line in some units
-        self.radius_of_curvature = None 
+		#radius of curvature of the line in some units
+		self.radius_of_curvature = None 
 		
-        #difference in fit coefficients between last and new fits
-        self.diffs = np.array([0,0,0], dtype='float')
+		#difference in fit coefficients between last and new fits
+		self.diffs = np.array([0,0,0], dtype='float')
 		
 		#bposition of base of lane
 		self.base_pos = None
@@ -40,7 +42,7 @@ class Line():
 	#this flag will also be used by the histogram/ sw algorithm to do its thing
 	def reinitialize(self):
 		self.is_tracking = False
-		self.recent_fits = deque(self.frame_memory)
+		self.recent_fits.clear()
 		self.best_fit = None
 		self.current_fit = None
 		self.base_pos = None
@@ -81,16 +83,3 @@ class Line():
 	#position of base of the lane in meters	
 	def calc_base_position(self):
 		self.base_pos = 15
-	
-		
-		
-left_line = Line()
-if (left_line.is_tracking):
-	ret = trackLane
-else:
-	ret = detectLane
-	
-if ret == false:
-	left_line.no_lane_detected()
-if ret == true:
-	left
