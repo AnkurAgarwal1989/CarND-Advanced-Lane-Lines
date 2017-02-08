@@ -12,9 +12,12 @@ car_config['scale_Y'] = 30/1000
 car_config['image_shape'] = bin_img_shape
 
 binary_thresh_config = {}
-binary_thresh_config['RThresh'] = Threshold()
-binary_thresh_config['VThresh'] = Threshold()
+binary_thresh_config['R_Range'] = Threshold()
+binary_thresh_config['V_Range'] = Threshold()
+binary_thresh_config['R_init'] = Threshold()
+binary_thresh_config['V_init'] = Threshold()
 binary_thresh_config['bailout'] = 25
+R_Range, V_Range, V_init = 140, R_init = 140, bailout = 20
 
 #get camera calibration.
 
@@ -34,7 +37,9 @@ left_fit = None
 right_fit = None
 for frame in video:
 	undist_img = undistort(frame)
+	
 	bin_img = binary_threshold(undist_img)
+	
 	if UNDCar.is_left_lane_tracking:
 		print("Tracking left lane")
 	else:
