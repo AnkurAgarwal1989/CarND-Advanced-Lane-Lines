@@ -1,7 +1,18 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Feb 7 13:35:66 2017
+
+@author: ankur
+"""
 import numpy as np
+import os
+
 import Car
 import Line
- 
+import BinaryThreshold as BT
+import CameraCalibration as CC
+
 #tuple(X,Y) containing binary image
 bin_img_shape = (640, 240)
 
@@ -12,14 +23,11 @@ car_config['scale_Y'] = 30/1000
 car_config['image_shape'] = bin_img_shape
 
 binary_thresh_config = {}
-binary_thresh_config['R_Range'] = Threshold()
-binary_thresh_config['V_Range'] = Threshold()
-binary_thresh_config['R_init'] = Threshold()
-binary_thresh_config['V_init'] = Threshold()
+binary_thresh_config['R_Range'] = BT.ThresholdRange(140, 250, 5)
+binary_thresh_config['V_Range'] = BT.ThresholdRange(140, 240, 5)
+binary_thresh_config['R_init'] = 150
+binary_thresh_config['V_init'] = 150
 binary_thresh_config['bailout'] = 25
-R_Range, V_Range, V_init = 140, R_init = 140, bailout = 20
-
-#get camera calibration.
 
 warp_config = {}
 warp_config['P1'] = (point)
@@ -28,11 +36,19 @@ warp_config['P3'] = (point)
 warp_config['P4'] = (point)
 car_config['image_shape'] = bin_img_shape
 
+#camera calibration
+# tryreading a calibration file, if we can't read one, calibrate the camera
+camera_calibration_dir = os.path.join(os.getcwd(),"camera_cal")
+calib_name = os.path.join(camera_calibration_dir,"calibration_pickle.p")
+calibration = CC.get_calibration(calib_name)
+    if calibr
+
+          
 #get distortion matrix
 #get inverse distortion matrix
 
 
-UNDCar = Car.Car(config)
+UNDCar = Car.Car(car_config)
 left_fit = None
 right_fit = None
 for frame in video:

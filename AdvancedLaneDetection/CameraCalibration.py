@@ -12,6 +12,11 @@ import cv2
 import numpy as np
 import pickle
 
+def get_calibration(calib_name):
+    with open(calib_name, "rb") as f:
+        calibration = pickle.load(f)
+        return calibration
+    return None
 
 ###Class to perform Monocular Camera Calibration
 
@@ -34,9 +39,6 @@ class CameraCalibration:
         else:
             print("Unable to proceed with calibration. Exiting")
             return
-        
-        
-        
         
     #make sure we can find num_images in images_dir
     def checkForImages(self):

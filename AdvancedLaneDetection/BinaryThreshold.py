@@ -13,7 +13,7 @@ import numpy as np
 import cv2
 from . import utilities as cvUtils
 
-Threshold = namedtuple('Threshold', ['min', 'max', 'dTh'])
+ThresholdRange = namedtuple('ThresholdRange', ['min', 'max', 'dTh'])
 
 #RdxThresh = Threshold(150, 250, 5)
 
