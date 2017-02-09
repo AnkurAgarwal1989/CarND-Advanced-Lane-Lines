@@ -47,7 +47,7 @@ def warp_image(img, M, out_size):
     return (cv2.warpPerspective(img, M, out_size, flags=cv2.INTER_LINEAR))
 
 def get_warp_unwarp_matrices(w_cfg):
-    src_pts = np.array([w_cfg['p1'], w_cfg['p2'], w_cfg['p3'], w_cfg['p4']], dtype=np.float32)
+    src_pts = np.array([w_cfg['P1'], w_cfg['P2'], w_cfg['P3'], w_cfg['P4']], dtype=np.float32)
     
     offset = w_cfg['offset']
     img_x = w_cfg['bin_image_shape'][0]
@@ -61,7 +61,8 @@ def get_warp_unwarp_matrices(w_cfg):
 def undistort(image, calibration):
     mtx = calibration['mtx']
     dist = calibration['dist']
-    return cv2.undistort(image, mtx, dist, None, mtx)
+    image = cv2.undistort(image, mtx, dist, None, mtx)
+    return image
 
 scale_X = 3.7/430 #(meters/pixels)
 scale_Y = 3.048/34 #(meters/pixels)

@@ -20,8 +20,8 @@ class Car():
         #tuple (X, Y)
         self.bin_image_shape = lane_config['bin_image_shape']
           
-        self.left_Line = Line(N, self.scale_X, self.scale_Y)
-        self.right_Line = Line(N, self.scale_X, self.scale_Y)
+        self.left_Line = Line.Line(N, self.scale_X, self.scale_Y)
+        self.right_Line = Line.Line(N, self.scale_X, self.scale_Y)
            
         # are lanes detected. 0-None, 1-left/right, 2-both
         self.lanes_detected = None

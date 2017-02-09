@@ -12,7 +12,7 @@ import cv2
 import numpy as np
 import pickle
 
-def get_calibration(calib_name):
+def read_calibration(calib_name):
     with open(calib_name, "rb") as f:
         calibration = pickle.load(f)
         return calibration

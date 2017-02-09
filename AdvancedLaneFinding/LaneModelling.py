@@ -55,7 +55,7 @@ def detectLanes(bin_img, hist_height, sw_height, sw_width, num_white, side='left
         #draw the line about the centroid
         cv2.line(out_img, (current_x, win_p2[1]), (current_x, win_p1[1] ), color = (0, 255, 0), thickness=2)
         #Draw the rectangle around the sliding window
-        cv2.rectangle(out_img, win_p1, win_p2, color=(255, 0, 0))
+        cv2.rectangle(out_img, win_p1, win_p2, color=(0, 0, 255))
         print(sw, sw - sw_height, current_x)
         #find y pixels that belong to lanes
         sw_lane_pixels = ((nz_pixels_x >= win_p1[0]) & (nz_pixels_x < win_p2[0]) & 
@@ -105,7 +105,7 @@ def trackLanes(bin_img, line_fit, search_width):
     
     lane_x = nz_pixels_x[lane_pixels]
     lane_y = nz_pixels_y[lane_pixels]
-    out_img[lane_y, lane_x, :] = (0, 255, 255)
+    out_img[lane_y, lane_x, :] = (255, 255, 0)
     return out_img, (lane_y, lane_x)
 
 
