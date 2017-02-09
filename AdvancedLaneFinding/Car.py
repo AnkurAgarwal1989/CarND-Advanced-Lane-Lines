@@ -6,13 +6,19 @@ import Line
 import numpy as np
 
 class Car():
-    def __init__(self, config):
+    def __init__(self, lane_config, bt_config, camera_calibration, M, Minv):
         
-        N = config['tracking_window']
-        self.scale_X = config['scale_X']
-        self.scale_Y = config['scale_Y']
+        self.lane_cfg = lane_config
+        self.bt_cfg = bt_config
+        self.cam_calib = camera_calibration
+        self.warp_M = M
+        self.warp_Minv = Minv
+        
+        N = lane_config['tracking_window']
+        self.scale_X = lane_config['scale_X']
+        self.scale_Y = lane_config['scale_Y']
         #tuple (X, Y)
-        self.image_shape = config['image_shape']
+        self.bin_image_shape = lane_config['bin_image_shape']
           
         self.left_Line = Line(N, self.scale_X, self.scale_Y)
         self.right_Line = Line(N, self.scale_X, self.scale_Y)
@@ -61,7 +67,7 @@ class Car():
         left_base = self.left_Line.base_pos
         right_base = self.right_Line.base_pos
         center_base = (left_base + right_base)/2
-        self.dist_from_center = center_base - (self.image_shape[0]*self.scale_X)
+        self.dist_from_center = center_base - (self.bin_image_shape[0]*self.scale_X)
    
     def is_right_lane_tracking(self):
         return self.right_Line.is_tracking

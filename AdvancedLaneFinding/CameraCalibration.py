@@ -97,7 +97,7 @@ class CameraCalibration:
         return good_images
                 
     
-    def runCalibration(self):
+    def run_calibration(self):
         good_images = self.get_image_corners()
         if good_images < 3:
             print("Not enough images.")       
@@ -119,7 +119,7 @@ class CameraCalibration:
         
         return ret, self.mtx, self.dist
     
-    def writeCalibration(self):
+    def write_calibration(self):
         #Save calibration file as a pickle
         calib_file_name = os.path.join(self.output_dir,"calibration_pickle.p")
         self.calibration["mtx"] = self.mtx

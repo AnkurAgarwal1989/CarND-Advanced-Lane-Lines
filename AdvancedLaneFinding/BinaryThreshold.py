@@ -11,7 +11,7 @@ Created on Wed Feb  1 20:59:43 2017
 from collections import namedtuple
 import numpy as np
 import cv2
-from . import utilities as cvUtils
+import utilities as cvUtils
 
 ThresholdRange = namedtuple('ThresholdRange', ['min', 'max', 'dTh'])
 
@@ -37,6 +37,8 @@ def binary_threshold(roi, config):
     R_Thresh = config['R_init']
     V_Thresh = config['V_init']
     bailout = config['bailout']
+    minLane = config['minLane']
+    maxLane = config['maxLane']
         
     thresh_img = np.zeros_like(roi[:, :, 0])
     
@@ -66,8 +68,8 @@ def binary_threshold(roi, config):
     wiggleScope = True
     
     #We want the number of lane pixels to be within 1% to 3% of the total pixels in image
-    minarea = 0.015*total_pixels
-    maxarea = 0.025*total_pixels
+    minarea = minLane * total_pixels
+    maxarea = maxLane * total_pixels
     
     success = True
     

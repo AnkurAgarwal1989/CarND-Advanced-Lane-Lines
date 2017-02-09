@@ -50,8 +50,8 @@ def get_warp_unwarp_matrices(w_cfg):
     src_pts = np.array([w_cfg['p1'], w_cfg['p2'], w_cfg['p3'], w_cfg['p4']], dtype=np.float32)
     
     offset = w_cfg['offset']
-    img_x = w_cfg['image_shape'][0]
-    img_y = w_cfg['image_shape'][1]
+    img_x = w_cfg['bin_image_shape'][0]
+    img_y = w_cfg['bin_image_shape'][1]
     dst_pts = np.array([[offset, 0], [img_x-offset, 0], [img_x-offset, img_y], [offset, img_y]], dtype=np.float32)
   
     M = cv2.getPerspectiveTransform(src_pts, dst_pts)
