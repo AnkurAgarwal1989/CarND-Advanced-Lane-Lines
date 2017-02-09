@@ -19,21 +19,16 @@ class Car():
         self.scale_Y = lane_config['scale_Y']
         #tuple (X, Y)
         self.bin_image_shape = lane_config['bin_image_shape']
-          
-        self.left_Line = Line.Line(N, self.scale_X, self.scale_Y)
-        self.right_Line = Line.Line(N, self.scale_X, self.scale_Y)
+        
+        ###Line Objects
+        self.left_Line = Line.Line(N, self.scale_X, self.scale_Y, self.bin_image_shape)
+        self.right_Line = Line.Line(N, self.scale_X, self.scale_Y, self.bin_image_shape)
            
         # are lanes detected. 0-None, 1-left/right, 2-both
         self.lanes_detected = None
           
         # position from center. -ve car towards left, +ve car towards right
         self.dist_from_center = None
-           
-        #polynomial coefficients of last left lane
-        self.last_best_fit_left = None
-        
-        #polynomial coefficients of last right lane
-        self.last_best_fit_right = None      
           
         #cars driving polynomial fit
         self.driving_lane = None
@@ -74,3 +69,13 @@ class Car():
    
     def is_left_lane_tracking(self):
         return self.left_Line.is_tracking
+    
+    #function returns left and right lane points in pixels for plotting
+    ##list of left and right (x,y)
+    def get_lane_points_pixels(self):
+        #linespace for y, we know y is height pixels long
+        points_pixels = []
+        points_pixels.append(self.left_Line.calc_lane_points())
+        points_pixels.append(self.right_Line.calc_lane_points())
+        return points_pixels                                
+        

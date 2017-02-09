@@ -20,8 +20,8 @@ bin_img_shape = (640, 240)
 
 lane_config = {}
 lane_config['tracking_window'] = 5
-lane_config['scale_X'] = 3.7/430 #(meters/pixels)
-lane_config['scale_Y'] = 3.048/34 #(meters/pixels)
+lane_config['scale_X'] = 3.7/427 #(meters/pixels)
+lane_config['scale_Y'] = 3.048/72 #(meters/pixels)
 lane_config['bin_image_shape'] = bin_img_shape
 
 bt_config = {}
