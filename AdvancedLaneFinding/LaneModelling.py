@@ -56,7 +56,7 @@ def detectLanes(bin_img, hist_height, sw_height, sw_width, num_white, side='left
         cv2.line(out_img, (current_x, win_p2[1]), (current_x, win_p1[1] ), color = (0, 255, 0), thickness=2)
         #Draw the rectangle around the sliding window
         cv2.rectangle(out_img, win_p1, win_p2, color=(0, 0, 255))
-        print(sw, sw - sw_height, current_x)
+        #print(sw, sw - sw_height, current_x)
         #find y pixels that belong to lanes
         sw_lane_pixels = ((nz_pixels_x >= win_p1[0]) & (nz_pixels_x < win_p2[0]) & 
                          (nz_pixels_y < win_p1[1]) & (nz_pixels_y >= win_p2[1])).nonzero()[0]
@@ -103,9 +103,18 @@ def trackLanes(bin_img, line_fit, search_width):
     lane_pixels = ( (nz_pixels_x > (fit_x - search_width) ) & 
                                    (nz_pixels_x < (fit_x + search_width) ) )
     
+    plot_y = np.linspace(0, bin_img.shape[0]-1, bin_img.shape[0])
+    #get values of x for corresponding y
+    fit_x = 0
+    for deg,coeff in enumerate(line_fit[::-1]):
+        fit_x += coeff*(plot_y**deg)
+    line_pts = np.vstack((fit_x, plot_y)).T
+    cv2.polylines(out_img, np.int32([line_pts]), isClosed=False, color=(255, 255, 100), thickness=30)
+    
     lane_x = nz_pixels_x[lane_pixels]
     lane_y = nz_pixels_y[lane_pixels]
-    out_img[lane_y, lane_x, :] = (255, 255, 0)
+    #out_img[75:175, 250:350, :] = (255, 255, 255)
+    out_img[lane_y, lane_x, :] = (255, 0, 0)
     return out_img, (lane_y, lane_x)
 
 
@@ -115,16 +124,16 @@ input: lane_pixels: (x and y locations of the putative lane pixels)
        degree of polynomial: 2 or 3
 output: line_fit: polynomial equation of line
 '''
-def fitLine(img, lane_pixels, degree=2):
+def fitLine(bin_img, lane_pixels, degree=2):
     line_fit = None
-    out_img = np.copy(img)
+    out_img = np.dstack((bin_img, bin_img, bin_img))
     # Fit a n order polynomial
     lane_y, lane_x = lane_pixels
     line_fit = np.polyfit(lane_y, lane_x, degree)
     
     # Generate x and y values for plotting
     #linespace for y, we know y is height pixels long
-    plot_y = np.linspace(0, img.shape[0]-1, img.shape[0])
+    plot_y = np.linspace(0, bin_img.shape[0]-1, bin_img.shape[0])
     #get values of x for corresponding y
     fit_x = 0
     for deg,coeff in enumerate(line_fit[::-1]):
@@ -132,5 +141,5 @@ def fitLine(img, lane_pixels, degree=2):
     #fit_x = line_fit[0]*plot_y**2 + line_fit[1]*plot_y + line_fit[2]
     line_pts = np.vstack((fit_x, plot_y)).T
     
-    cv2.polylines(out_img, np.int32([line_pts]), isClosed=False, color=(255, 255, 0), thickness=4)
+    cv2.polylines(out_img, np.int32([line_pts]), isClosed=False, color=(255, 0, 0), thickness=10)
     return out_img, line_fit

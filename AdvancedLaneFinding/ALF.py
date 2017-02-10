@@ -8,6 +8,8 @@ Created on Wed Feb 7 13:35:66 2017
 import os, sys
 import cv2
 import numpy as np
+import imageio
+import time
 
 import Car
 import BinaryThreshold as BT
@@ -19,7 +21,7 @@ import utilities as laneUtils
 bin_img_shape = (640, 240)
 
 lane_config = {}
-lane_config['tracking_window'] = 5
+lane_config['tracking_window'] = 30
 lane_config['scale_X'] = 3.7/427 #(meters/pixels)
 lane_config['scale_Y'] = 3.048/72 #(meters/pixels)
 lane_config['bin_image_shape'] = bin_img_shape
@@ -29,6 +31,8 @@ bt_config['R_Range'] = BT.ThresholdRange(140, 250, 5)
 bt_config['V_Range'] = BT.ThresholdRange(140, 240, 5)
 bt_config['R_init'] = 150
 bt_config['V_init'] = 150
+bt_config['R_best'] = 150
+bt_config['V_best'] = 150
 bt_config['bailout'] = 25
 bt_config['minLane'] = 0.015
 bt_config['maxLane'] = 0.025
@@ -70,8 +74,8 @@ def find_lanes(img, Car_obj, debug = False):
     undist_img = laneUtils.undistort(img, Car_obj.cam_calib)
     
     #Init for left and right lane...start with None
-    curr_left_fit = None
-    curr_right_fit = None
+    curr_left_fit = Car_obj.left_Line.best_fit
+    curr_right_fit = Car_obj.right_Line.best_fit
     
     ROI_x1, ROI_y1 = 150, 490
     ROI_x2, ROI_y2 = img.shape[1]-ROI_x1, img.shape[0]
@@ -81,11 +85,14 @@ def find_lanes(img, Car_obj, debug = False):
     #Binary threshold image. We will use the values from the previous frameso save the config
     #DEBUG_OUT
     successFlag, bin_img, Car_obj.bt_cfg = BT.binary_threshold(roi, Car_obj.bt_cfg)
-    cv2.imwrite("bin_file.jpg", bin_img)
+    print(Car_obj.bt_cfg)
     #if successful binary thresholding, go ahead with the lane detection
     #else go to next image, save time
-    left_lane_img = np.zeros_like(bin_img)
-    right_lane_img = np.zeros_like(bin_img)
+    left_lane_img = np.zeros((Car_obj.bin_image_shape[1], Car_obj.bin_image_shape[0], 3), dtype=np.uint8)
+    right_lane_img = np.zeros_like(left_lane_img)
+    lane_img = np.zeros_like(left_lane_img)
+    if not successFlag:
+        print("Bummer")
     if successFlag:
         warped_bin_img = laneUtils.warp_image(bin_img, Car_obj.warp_M, Car_obj.bin_image_shape)
         warped_bin_img = warped_bin_img[:,:,0]
@@ -106,15 +113,21 @@ def find_lanes(img, Car_obj, debug = False):
             
         #combined binary images with lane detection debug output
         #DEBUG_OUT
-        lane_img = cv2.addWeighted(left_lane_img, 0.5, right_lane_img, 0.5, 0)
+        lane_img = cv2.addWeighted(left_lane_img, 1, right_lane_img, 1, 0)
+        print(lane_img.shape)
+        #new calculated line fits
+        if len(left_y > 0):
+            left_fit_img, curr_left_fit = LM.fitLine(warped_bin_img, (left_y, left_x), degree=2)
+        if len(right_y > 0):
+            right_fit_img, curr_right_fit = LM.fitLine(warped_bin_img, (right_y, right_x), degree=2)
+            
+        fit_img = cv2.addWeighted(left_fit_img, 1, right_fit_img, 1, 0)
+        print(fit_img.shape)
+        lane_img = cv2.addWeighted(lane_img, 1, fit_img, 1, 0)
+    #Update the car object
+    Car_obj.update(curr_left_fit, curr_right_fit)
     return Car_obj, lane_img
-#        #new calculated line fits
-#        curr_left_fit = LM.fitLine(bin_img, (left_y, left_x), degree=2)
-#        curr_right_fit = LM.fitLine(bin_img, (right_y, right_x), degree=2)
-#        
-#        #Update the car object
-#        Car_obj.update(curr_left_fit, curr_right_fit)
-#    	
+#    	2
 #        #if we know the position of both left and right lanes
 #        #draw and reproject to original undistorted image
 #        if Car_obj.driving_lane is not None:
@@ -142,13 +155,38 @@ def process_image(image_name, Car_obj, debug = False):
     if image is None:
         print("Could not open image")
     print(image.shape)
+    
+    out_name =(os.path.splitext(os.path.basename(image_name))[0] + '_out.jpg')
+    
     Car_obj, out_image = find_lanes(image, Car_obj, debug)
+    
+    cv2.imwrite(out_name, out_image)
     return Car_obj, out_image
 
+#Using imageio because OpenCV and 16.04Ubuntu have some weird issues with avi and mp4
 def process_video(video_name, Car_obj, debug = False):
     out_video = None
-    #for frame in video:
-    #    Car_obj, out_frame = find_lanes(frame, Car_obj, debug)
+    in_video = imageio.get_reader(video_name)
+    fps = in_video.get_meta_data()['fps']
+
+    out_name =(os.path.splitext(os.path.basename(video_name))[0] + '_out.avi')
+    out_video = imageio.get_writer(out_name, fps = fps)
+    #fourcc = cv2.VideoWriter_fourcc(*'XVID')
+    #out_video = cv2.VideoWriter('output.avi',fourcc, 20.0, (640,240))
+    for i, image in enumerate(in_video):
+        #if i == 100:
+            #break
+        cv_image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+        start = time.time()
+        Car_obj, cv_image = find_lanes(cv_image, Car_obj, debug)
+        end = time.time()
+        dt = (end - start)
+        print("{:.3f} s, {:.2f} FPS".format(dt, 1/dt))
+        out_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
+        out_video.append_data(out_image)
+        #out_video.write(cv_image)
+    out_video.close()
+    #out_video.release()
     return Car_obj, out_video
     
 def main():
@@ -174,8 +212,7 @@ def main():
         process_image(input_name, UNDCar, True)
     elif (input_name is video):
         process_video(input_name, UNDCar, True)'''
-    UNDCar, out_image = process_image(input_name, UNDCar)
-    cv2.imwrite("outfile.jpg", out_image)
+    UNDCar, out_image = process_video(input_name, UNDCar)
     print(UNDCar.bt_cfg)
     
     

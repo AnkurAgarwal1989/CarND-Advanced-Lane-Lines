@@ -34,8 +34,8 @@ def binary_threshold(roi, config):
     
     R_Range = config['R_Range']
     V_Range = config['V_Range']
-    R_Thresh = config['R_init']
-    V_Thresh = config['V_init']
+    R_Thresh = config['R_best']
+    V_Thresh = config['V_best']
     bailout = config['bailout']
     minLane = config['minLane']
     maxLane = config['maxLane']
@@ -81,9 +81,9 @@ def binary_threshold(roi, config):
             break
             
         #If there is still scope in moving ranges
-        VwiggleScope = (V_Thresh >= V_Range.min) & (V_Thresh <= V_Range.max)
-        RwiggleScope = (R_Thresh >= R_Range.min) & (R_Thresh <= R_Range.max)
-        wiggleScope = VwiggleScope | RwiggleScope
+        VwiggleScope = (V_Thresh >= V_Range.min) and (V_Thresh <= V_Range.max)
+        RwiggleScope = (R_Thresh >= R_Range.min) and (R_Thresh <= R_Range.max)
+        wiggleScope = VwiggleScope or RwiggleScope
         
         if wiggleScope:
             if (nzcount < minarea):
@@ -104,18 +104,19 @@ def binary_threshold(roi, config):
         else:
             print("Unable to find a good value in range. Bailing out!")
             success = False
-            break
+            break    
     
-    if not success:
-        nzcount = np.count_nonzero(thresh_img)
-        thresh_img = np.zeros_like(thresh_img)
-    
-    
-    print("%cnt", nzcount/total_pixels)
-    print("steps", counter)    
+    #print("%cnt", nzcount/total_pixels)
+    #print("steps", counter)    
     #print(nzcount, total_pixels)
         
     bin_img = np.dstack((thresh_img, thresh_img, thresh_img))
-    config['R_init'] = R_Thresh
-    config['V_init'] = V_Thresh
+    config['R_best'] = R_Thresh
+    config['V_best'] = V_Thresh
+
+    if not success:
+        nzcount = np.count_nonzero(thresh_img)
+        thresh_img = np.zeros_like(thresh_img)
+        config['R_best'] = config['R_init']
+        config['V_best'] = config['V_init']
     return success, bin_img, config

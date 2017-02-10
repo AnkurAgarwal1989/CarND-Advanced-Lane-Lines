@@ -61,30 +61,29 @@ class Line():
             self.lane_detected(curr_fit)
         
         if self.is_tracking:
-            self.calc_RoC()
+            self.calc_RoC(10)
             self.calc_base_position()
-    	
-    
+            
     def no_lane_detected(self):
         self.no_lane_detected_frames += 1
         if self.no_lane_detected_frames == 5:
-            	self.reinitialize()
-    	
-    	def lane_detected(self, curr_fit):
+            self.reinitialize()
+            
+    def lane_detected(self, curr_fit):
         self.is_tracking = True
         self.no_lane_detected_frames = 0
         self.current_fit = curr_fit
         self.recent_fits.append(self.current_fit)
         
         self.best_fit = np.mean(self.recent_fits, axis = 0)
-    	
-    	#RoC in meters
-    	def calc_RoC(self, y):
+        
+    #RoC in meters
+    def calc_RoC(self, y):
         self.radius_of_curvature = 1000
-    
-    	#position of base of the lane in meters	
-    	def calc_base_position(self):
-            self.base_pos = 15
+        
+    #position of base of the lane in meters	
+    def calc_base_position(self):
+        self.base_pos = 15
             
     #calc lane points in pixels for plotting
     #vertical array of (x,y)
