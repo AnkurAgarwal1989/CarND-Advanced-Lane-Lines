@@ -11,6 +11,34 @@ import numpy as np
 # For first frame or lost tracking: use histogram and sliding window
 # If tracking. use previous line equation for targeted detection
 
+
+'''
+fit_line: function to fit n degree polynomial to lane pixels
+input: lane_pixels: (x and y locations of the putative lane pixels)
+       degree of polynomial: 2 or 3
+output: line_fit: polynomial equation of line
+'''
+def fit_line(bin_img, lane_pixels, degree=2):
+    line_fit = None
+    out_img = np.dstack((bin_img, bin_img, bin_img))
+    # Fit a n order polynomial
+    lane_y, lane_x = lane_pixels
+    line_fit = np.polyfit(lane_y, lane_x, degree)
+    
+    # Generate x and y values for plotting
+    #linespace for y, we know y is height pixels long
+    plot_y = np.linspace(0, bin_img.shape[0]-1, bin_img.shape[0])
+    #get values of x for corresponding y
+    fit_x = 0
+    for deg,coeff in enumerate(line_fit[::-1]):
+        fit_x += coeff*(plot_y**deg)
+    #fit_x = line_fit[0]*plot_y**2 + line_fit[1]*plot_y + line_fit[2]
+    line_pts = np.vstack((fit_x, plot_y)).T
+    
+    cv2.polylines(out_img, np.int32([line_pts]), isClosed=False, color=(255, 0, 0), thickness=10)
+    return out_img, line_fit
+
+
 '''
 detectLanes: function to detect lanes using a histogram and sliding window
 input: bin_img: single channel
@@ -20,9 +48,7 @@ input: bin_img: single channel
        side of image: 'left' or 'right'
 output: lane_pixels ((lane_y, lane_x)y and x locations of lane pixels)
 '''
-
-
-def detectLanes(bin_img, hist_height, sw_height, sw_width, num_white, side='left'):
+def detect_lane(bin_img, hist_height, sw_height, sw_width, num_white, side='left'):
     out_img = np.dstack((bin_img, bin_img, bin_img))
     
     lane_pixels = []
@@ -75,7 +101,11 @@ def detectLanes(bin_img, hist_height, sw_height, sw_width, num_white, side='left
     
     lane_x = nz_pixels_x[lane_pixels]
     lane_y = nz_pixels_y[lane_pixels]
-    return out_img, (lane_y, lane_x)
+    line_fit = None
+    if (len(lane_y) > 0):
+       fit_img, line_fit = fit_line(bin_img, (lane_y, lane_x), degree=2)
+       out_img = cv2.addWeighted(out_img, 1, fit_img, 1, 0)
+    return out_img, line_fit
 
 
 '''
@@ -86,7 +116,7 @@ input: bin_img: single channel
        side of image: 'left' or 'right'
 output: lane_pixels ((lane_y, lane_x)y and x locations of the putative lane pixels)
 '''
-def trackLanes(bin_img, line_fit, search_width):
+def track_lane(bin_img, line_fit, search_width):
     out_img = np.dstack((bin_img, bin_img, bin_img))
     
     lane_pixels = []    
@@ -115,31 +145,9 @@ def trackLanes(bin_img, line_fit, search_width):
     lane_y = nz_pixels_y[lane_pixels]
     #out_img[75:175, 250:350, :] = (255, 255, 255)
     out_img[lane_y, lane_x, :] = (255, 0, 0)
-    return out_img, (lane_y, lane_x)
 
-
-'''
-trackLanes: function to fit n degree polynomial to lane pixels
-input: lane_pixels: (x and y locations of the putative lane pixels)
-       degree of polynomial: 2 or 3
-output: line_fit: polynomial equation of line
-'''
-def fitLine(bin_img, lane_pixels, degree=2):
     line_fit = None
-    out_img = np.dstack((bin_img, bin_img, bin_img))
-    # Fit a n order polynomial
-    lane_y, lane_x = lane_pixels
-    line_fit = np.polyfit(lane_y, lane_x, degree)
-    
-    # Generate x and y values for plotting
-    #linespace for y, we know y is height pixels long
-    plot_y = np.linspace(0, bin_img.shape[0]-1, bin_img.shape[0])
-    #get values of x for corresponding y
-    fit_x = 0
-    for deg,coeff in enumerate(line_fit[::-1]):
-        fit_x += coeff*(plot_y**deg)
-    #fit_x = line_fit[0]*plot_y**2 + line_fit[1]*plot_y + line_fit[2]
-    line_pts = np.vstack((fit_x, plot_y)).T
-    
-    cv2.polylines(out_img, np.int32([line_pts]), isClosed=False, color=(255, 0, 0), thickness=10)
+    if (len(lane_y) > 0):
+       fit_img, line_fit = fit_line(bin_img, (lane_y, lane_x), degree=2)
+       out_img = cv2.addWeighted(out_img, 1, fit_img, 1, 0)
     return out_img, line_fit
