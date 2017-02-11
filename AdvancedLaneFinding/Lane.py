@@ -190,10 +190,14 @@ class Lane():
 	#function called by Car object whenever a good BT frame achieved
 	#This function then decides which (detection or tracking) to call.
 	def find_lane(self, bin_img, side='left'):
-		if self.is_tracking:
-			out_img = self.track_lane(bin_img, sw)
+		out_img = None
+		if bin_img is None:
+			self.current_fit = None
 		else:
-			out_img = self.detect_lane(bin_img, hist_height, sw_height, sw_width, num_white, side)
+			if self.is_tracking:
+				out_img = self.track_lane(bin_img, sw)
+			else:
+				out_img = self.detect_lane(bin_img, hist_height, sw_height, sw_width, num_white, side)
 		
 		self.update_state()
 		return out_img
