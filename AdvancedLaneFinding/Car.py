@@ -2,7 +2,7 @@
 Class to hold Vehicle related data. This gets added to the Deque
 
 '''
-import Line
+import Lane
 import numpy as np
 
 class Car():
@@ -21,8 +21,8 @@ class Car():
         self.bin_image_shape = lane_config['bin_image_shape']
         
         ###Line Objects
-        self.left_Line = Line.Line(N, self.scale_X, self.scale_Y, self.bin_image_shape)
-        self.right_Line = Line.Line(N, self.scale_X, self.scale_Y, self.bin_image_shape)
+        self.left_Line = Lane.Lane(N, self.scale_X, self.scale_Y, self.bin_image_shape)
+        self.right_Line = Lane.Lane(N, self.scale_X, self.scale_Y, self.bin_image_shape)
            
         # are lanes detected. 0-None, 1-left/right, 2-both
         self.lanes_detected = None
@@ -36,9 +36,9 @@ class Car():
         #radius of curvature of the car in meters
         self.RoC = None
       
-    def update(self, new_left_fit=None, new_right_fit=None):
-        self.left_Line.update(new_left_fit)
-        self.right_Line.update(new_right_fit)
+    def update(self, bin_img=None):
+        out_left = self.left_Line.find_lane(bin_img)
+        out_right = self.right_Line.find_lane(bin_img, side='right')
         if (self.is_right_lane_tracking() and self.is_left_lane_tracking()):
             self.calc_driving_lane_fit()
             self.calc_RoC()
@@ -47,6 +47,7 @@ class Car():
          self.driving_lane = None
          self.RoC = None
          self.dist_from_center = None
+        return out_left, out_right
          
       
     def calc_driving_lane_fit(self):
