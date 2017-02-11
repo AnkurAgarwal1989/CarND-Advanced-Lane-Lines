@@ -77,7 +77,6 @@ def draw_lanes(img, Car_obj, debug = False):
     ROI_x1, ROI_y1 = 150, 490
     ROI_x2, ROI_y2 = img.shape[1]-ROI_x1, img.shape[0]
     roi = laneUtils.get_ROI(undist_img, ROI_x1, ROI_y1, ROI_x2, ROI_y2)
-    
     #Binary threshold image. We will use the values from the previous frameso save the config
     #DEBUG_OUT
     successFlag, bin_img, Car_obj.bt_cfg = BT.binary_threshold(roi, Car_obj.bt_cfg)
@@ -97,23 +96,11 @@ def draw_lanes(img, Car_obj, debug = False):
         #ToDo
         #Method detects or tracks lanes depending on state
         #DEBUG_OUT
-        lane_img = Car_obj.find_lanes(warped_bin_img)
-        
-        if Car_obj.is_left_lane_tracking():
-            print("Tracking left lane")
-            left_lane_img, (left_y, left_x) = LM.trackLanes(warped_bin_img, curr_left_fit, 50)
-        else:
-            print("Detecting left lane in new frame")
-            left_lane_img, (left_y, left_x) = LM.detectLanes(warped_bin_img, 100, 24, 30, num_white = 50)
-    		
-        if Car_obj.is_right_lane_tracking():
-            print("Tracking right lane")
-            right_lane_img, (right_y, right_x) = LM.trackLanes(warped_bin_img, curr_right_fit, 50)
-        else:
-            print("Detecting right lane in new frame")
-            right_lane_img, (right_y, right_x) = LM.detectLanes(warped_bin_img, 100, 24, 30, num_white = 50, side='right')
-    #Update the car object
-    Car_obj.update(curr_left_fit, curr_right_fit)
+        left_lane_img, right_lane_img = Car_obj.update(warped_bin_img)
+        lane_img = cv2.addWeighted(left_lane_img, 1, right_lane_img, 1, 0)
+    warped_color_roi = laneUtils.warp_image(roi, Car_obj.warp_M, Car_obj.bin_image_shape)
+    out_img = Car_obj.draw_lanes(warped_color_roi);
+    unwarped_roi = laneUtils.warp_image(out_img, Car_obj.warp_Minv, (roi.shape[1], roi.shape[0]))
     return Car_obj, lane_img
 #    	2
 #        #if we know the position of both left and right lanes
@@ -169,7 +156,7 @@ def process_video(video_name, Car_obj, debug = False):
         Car_obj, cv_image = draw_lanes(cv_image, Car_obj, debug)
         end = time.time()
         dt = (end - start)
-        print("{:.3f} s, {:.2f} FPS".format(dt, 1/dt))
+        #print("{:.3f} s, {:.2f} FPS".format(dt, 1/dt))
         out_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
         out_video.append_data(out_image)
         #out_video.write(cv_image)
@@ -195,13 +182,11 @@ def main():
     
     #Create a car object to hold everything
     UNDCar = Car.Car(lane_config, bt_config, calibration, M, Minv)
-    print(UNDCar.bt_cfg)
     '''if (input_name is image):
         process_image(input_name, UNDCar, True)
     elif (input_name is video):
         process_video(input_name, UNDCar, True)'''
     UNDCar, out_image = process_video(input_name, UNDCar)
-    print(UNDCar.bt_cfg)
     
     
 if __name__ == "__main__":

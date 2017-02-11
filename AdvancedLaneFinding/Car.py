@@ -4,6 +4,7 @@ Class to hold Vehicle related data. This gets added to the Deque
 '''
 import Lane
 import numpy as np
+import cv2
 
 class Car():
     def __init__(self, lane_config, bt_config, camera_calibration, M, Minv):
@@ -37,8 +38,8 @@ class Car():
         self.RoC = None
       
     def update(self, bin_img=None):
-        out_left = self.left_Line.find_lane(bin_img)
-        out_right = self.right_Line.find_lane(bin_img, side='right')
+        out_left_img = self.left_Line.find_lane(bin_img)
+        out_right_img = self.right_Line.find_lane(bin_img, side='right')
         if (self.is_right_lane_tracking() and self.is_left_lane_tracking()):
             self.calc_driving_lane_fit()
             self.calc_RoC()
@@ -47,7 +48,7 @@ class Car():
          self.driving_lane = None
          self.RoC = None
          self.dist_from_center = None
-        return out_left, out_right
+        return out_left_img, out_right_img
          
       
     def calc_driving_lane_fit(self):
@@ -79,4 +80,22 @@ class Car():
         points_pixels.append(self.left_Line.calc_lane_points())
         points_pixels.append(self.right_Line.calc_lane_points())
         return points_pixels                                
+        
+    #draw the left and right lanes on the colored warped image
+    def draw_lanes(self, warped_img):
+        out_img = warped_img
+        if (self.is_right_lane_tracking() and self.is_left_lane_tracking()):
+            left_points = self.left_Line.calc_lane_points()
+            right_points = np.flipud(self.right_Line.calc_lane_points())
+            pts = np.vstack((left_points, right_points))
+    
+            # Draw the lane onto the warped blank image
+            left_img = cv2.polylines(warped_img, np.int32([left_points]), isClosed=False, color=(255, 255, 0), thickness=5)
+            
+            right_img = cv2.polylines(warped_img, np.int32([right_points]), isClosed=False, color=(255, 255, 0), thickness=5)
+            
+            out_img = cv2.addWeighted(left_img, 1, right_img, 1, 0)
+            poly_img = cv2.fillPoly(warped_img, np.int_([pts]), (0,255, 0))
+            out_img = cv2.addWeighted(out_img, 1, poly_img, 1, 0)
+        return out_img
         

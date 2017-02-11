@@ -44,7 +44,7 @@ def draw_polygon(img, p1, p2, p3, p4):
 #Warp an image to an output size by applying M
 #out_size is a tuple (640, 240)
 def warp_image(img, M, out_size):
-    return (cv2.warpPerspective(img, M, out_size, flags=cv2.INTER_LINEAR))
+    return cv2.warpPerspective(img, M, out_size, flags=cv2.INTER_LINEAR)
 
 def get_warp_unwarp_matrices(w_cfg):
     src_pts = np.array([w_cfg['P1'], w_cfg['P2'], w_cfg['P3'], w_cfg['P4']], dtype=np.float32)
