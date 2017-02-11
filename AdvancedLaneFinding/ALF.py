@@ -66,7 +66,7 @@ def get_calibration():
 # if debug is False, the output image is the final output
 # For each frame, we use the config data in the Car Object
 # if required we update it and pass it back
-def find_lanes(img, Car_obj, debug = False):
+def draw_lanes(img, Car_obj, debug = False):
     out_img = np.copy(img)
     
     #undistort image
@@ -77,10 +77,6 @@ def find_lanes(img, Car_obj, debug = False):
     ROI_x1, ROI_y1 = 150, 490
     ROI_x2, ROI_y2 = img.shape[1]-ROI_x1, img.shape[0]
     roi = laneUtils.get_ROI(undist_img, ROI_x1, ROI_y1, ROI_x2, ROI_y2)
-    
-    #Initialize left and right lanes from last best fit..start with None
-    curr_left_fit = Car_obj.left_Line.best_fit
-    curr_right_fit = Car_obj.right_Line.best_fit
     
     #Binary threshold image. We will use the values from the previous frameso save the config
     #DEBUG_OUT
@@ -93,8 +89,15 @@ def find_lanes(img, Car_obj, debug = False):
     lane_img = np.zeros_like(left_lane_img)
     
     if successFlag:
+        #Warp ROI to Bird's Eye view
         warped_bin_img = laneUtils.warp_image(bin_img, Car_obj.warp_M, Car_obj.bin_image_shape)
+        #only need single channel
         warped_bin_img = warped_bin_img[:,:,0]
+        
+        #ToDo
+        #Method detects or tracks lanes depending on state
+        #DEBUG_OUT
+        lane_img = Car_obj.find_lanes(warped_bin_img)
         
         if Car_obj.is_left_lane_tracking():
             print("Tracking left lane")
@@ -109,20 +112,6 @@ def find_lanes(img, Car_obj, debug = False):
         else:
             print("Detecting right lane in new frame")
             right_lane_img, (right_y, right_x) = LM.detectLanes(warped_bin_img, 100, 24, 30, num_white = 50, side='right')
-            
-        #combined binary images with lane detection debug output
-        #DEBUG_OUT
-        lane_img = cv2.addWeighted(left_lane_img, 1, right_lane_img, 1, 0)
-        print(lane_img.shape)
-        #new calculated line fits
-        if len(left_y > 0):
-            left_fit_img, curr_left_fit = LM.fitLine(warped_bin_img, (left_y, left_x), degree=2)
-        if len(right_y > 0):
-            right_fit_img, curr_right_fit = LM.fitLine(warped_bin_img, (right_y, right_x), degree=2)
-            
-        fit_img = cv2.addWeighted(left_fit_img, 1, right_fit_img, 1, 0)
-        print(fit_img.shape)
-        lane_img = cv2.addWeighted(lane_img, 1, fit_img, 1, 0)
     #Update the car object
     Car_obj.update(curr_left_fit, curr_right_fit)
     return Car_obj, lane_img
@@ -157,7 +146,7 @@ def process_image(image_name, Car_obj, debug = False):
     
     out_name =(os.path.splitext(os.path.basename(image_name))[0] + '_out.jpg')
     
-    Car_obj, out_image = find_lanes(image, Car_obj, debug)
+    Car_obj, out_image = draw_lanes(image, Car_obj, debug)
     
     cv2.imwrite(out_name, out_image)
     return Car_obj, out_image
@@ -177,7 +166,7 @@ def process_video(video_name, Car_obj, debug = False):
             #break
         cv_image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
         start = time.time()
-        Car_obj, cv_image = find_lanes(cv_image, Car_obj, debug)
+        Car_obj, cv_image = draw_lanes(cv_image, Car_obj, debug)
         end = time.time()
         dt = (end - start)
         print("{:.3f} s, {:.2f} FPS".format(dt, 1/dt))
