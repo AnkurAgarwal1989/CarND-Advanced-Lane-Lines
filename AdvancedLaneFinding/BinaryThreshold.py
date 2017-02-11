@@ -74,6 +74,7 @@ def binary_threshold(roi, config):
     success = True
     
     while ((nzcount < minarea) | (nzcount >= maxarea)) & (wiggleScope):
+        print(nzcount/total_pixels, counter, R_Thresh, V_Thresh)
         counter += 1
         if (counter == bailout):
             print("Unable to find a good value in {} steps. Bailing out!".format(bailout))
@@ -106,9 +107,7 @@ def binary_threshold(roi, config):
             success = False
             break    
     
-    #print("%cnt", nzcount/total_pixels)
-    #print("steps", counter)    
-    #print(nzcount, total_pixels)
+    print("{:.2f} %cnt, {} steps, {} nzcnt".format(nzcount/total_pixels, counter, total_pixels))
         
     bin_img = np.dstack((thresh_img, thresh_img, thresh_img))
     config['R_best'] = R_Thresh

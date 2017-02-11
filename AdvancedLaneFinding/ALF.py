@@ -14,7 +14,6 @@ import time
 import Car
 import BinaryThreshold as BT
 import CameraCalibration as CC
-import LaneModelling as LM
 import utilities as laneUtils
 
 #tuple(X,Y) containing binary image
@@ -77,15 +76,18 @@ def draw_lanes(img, Car_obj, debug = False):
     ROI_x1, ROI_y1 = 150, 490
     ROI_x2, ROI_y2 = img.shape[1]-ROI_x1, img.shape[0]
     roi = laneUtils.get_ROI(undist_img, ROI_x1, ROI_y1, ROI_x2, ROI_y2)
+    
     #Binary threshold image. We will use the values from the previous frameso save the config
     #DEBUG_OUT
     successFlag, bin_img, Car_obj.bt_cfg = BT.binary_threshold(roi, Car_obj.bt_cfg)
-    
+    print(Car_obj.bt_cfg)
     #if successful binary thresholding, go ahead with the lane detection
     #else go to next image, save time
     left_lane_img = np.zeros((Car_obj.bin_image_shape[1], Car_obj.bin_image_shape[0], 3), dtype=np.uint8)
     right_lane_img = np.zeros_like(left_lane_img)
     lane_img = np.zeros_like(left_lane_img)
+    
+    #print(Car_obj.bt_cfg)
     
     if successFlag:
         #Warp ROI to Bird's Eye view
@@ -98,10 +100,18 @@ def draw_lanes(img, Car_obj, debug = False):
         #DEBUG_OUT
         left_lane_img, right_lane_img = Car_obj.update(warped_bin_img)
         lane_img = cv2.addWeighted(left_lane_img, 1, right_lane_img, 1, 0)
+        
     warped_color_roi = laneUtils.warp_image(roi, Car_obj.warp_M, Car_obj.bin_image_shape)
+    
+    #Take the best fits and draw lanes
     out_img = Car_obj.draw_lanes(warped_color_roi);
+
     unwarped_roi = laneUtils.warp_image(out_img, Car_obj.warp_Minv, (roi.shape[1], roi.shape[0]))
-    return Car_obj, lane_img
+    #black_pixels = unwarped_roi[unwarped_roi == (0,0,0,)]
+    #unwarped_roi[black_pixels] = roi[black_pixels]   
+    undist_img[ROI_y1:ROI_y2, ROI_x1:ROI_x2, :] = unwarped_roi
+    undist_img[0:240,0:640,:] = lane_img
+    return Car_obj, undist_img
 #    	2
 #        #if we know the position of both left and right lanes
 #        #draw and reproject to original undistorted image
@@ -149,14 +159,18 @@ def process_video(video_name, Car_obj, debug = False):
     #fourcc = cv2.VideoWriter_fourcc(*'XVID')
     #out_video = cv2.VideoWriter('output.avi',fourcc, 20.0, (640,240))
     for i, image in enumerate(in_video):
-        #if i == 100:
+        #if i == 155:
             #break
+        print()
+        print('Frame # ', i)
+        
         cv_image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
         start = time.time()
         Car_obj, cv_image = draw_lanes(cv_image, Car_obj, debug)
         end = time.time()
         dt = (end - start)
-        #print("{:.3f} s, {:.2f} FPS".format(dt, 1/dt))
+        print("{:.3f} s, {:.2f} FPS".format(dt, 1/dt))
+        cv_image = cv2.putText(cv_image, str(i), (0,30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0), 2)
         out_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
         out_video.append_data(out_image)
         #out_video.write(cv_image)

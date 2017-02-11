@@ -9,9 +9,9 @@ import cv2
 
 class Lane():
     
-    def __init__(self, N, scale_X, scale_Y, img_shape):
+    def __init__(self, N, scale_X, scale_Y, img_shape, lane_type='left'):
         self.frame_memory = N
-
+        self.lane_type = lane_type
         # is it tracking
         self.is_tracking = False
         
@@ -26,6 +26,8 @@ class Lane():
         
         #polynomial coefficients for the most recent fit
         self.current_fit = None
+        self.curr_x = None
+        self.curr_roc = None
         
         #radius of curvature of the line in some units
         self.radius_of_curvature = None 
@@ -39,7 +41,8 @@ class Lane():
         #scales in X and Y (meters/ pixels)
         self.scale_X = scale_X
         self.scale_Y = scale_Y
-                
+        
+        #tuple(x,y)        
         self.bin_image_shape = img_shape
         
 	
@@ -50,7 +53,9 @@ class Lane():
         self.recent_fits.clear()
         self.best_fit = None
         self.current_fit = None
+        self.curr_x = None
         self.base_pos = None
+        self.curr_roc = None
 	
     '''
     fit_line: function to fit n degree polynomial to lane pixels
@@ -59,25 +64,27 @@ class Lane():
     output: line_fit: polynomial equation of line
     '''
     def fit_line(self, bin_img, lane_pixels, degree=2):
-        line_fit = None
+        self.current_fit = None
+        self.curr_x = None
         out_img = np.dstack((bin_img, bin_img, bin_img))
         # Fit a n order polynomial
         lane_y, lane_x = lane_pixels
-        line_fit = np.polyfit(lane_y, lane_x, degree)
+        self.current_fit = np.polyfit(lane_y, lane_x, degree)
         
         
         # Generate x and y values for plotting
         #linespace for y, we know y is height pixels long
-        plot_y = np.linspace(0, self.bin_image_shape[0]-1, self.bin_image_shape[0])
+        plot_y = np.linspace(0, bin_img.shape[0]-1, bin_img.shape[0])
         #get values of x for corresponding y
         fit_x = 0
-        for deg,coeff in enumerate(line_fit[::-1]):
+        for deg,coeff in enumerate(self.current_fit[::-1]):
             fit_x += coeff*(plot_y**deg)
-    
-        line_pts = np.vstack((fit_x, plot_y)).T
+            
+        self.curr_x = fit_x
+        line_pts = np.vstack((self.curr_x, plot_y)).T
 
-        cv2.polylines(out_img, np.int32([line_pts]), isClosed=False, color=(255, 0, 0), thickness=5)
-        return out_img, line_fit
+        cv2.polylines(out_img, np.int32([line_pts]), isClosed=False, color=(255, 0, 255), thickness=5)
+        return out_img
         
         
     '''
@@ -141,7 +148,7 @@ class Lane():
         lane_y = nz_pixels_y[lane_pixels]
 
         if (len(lane_y) > 0):
-           fit_img, self.current_fit = self.fit_line(bin_img, (lane_y, lane_x), degree=2)
+           fit_img = self.fit_line(bin_img, (lane_y, lane_x), degree=2)
            out_img = cv2.addWeighted(out_img, 1, fit_img, 1, 0)
         return out_img
 
@@ -177,14 +184,14 @@ class Lane():
         for deg,coeff in enumerate(self.best_fit[::-1]):
             fit_x += coeff*(plot_y**deg)
         line_pts = np.vstack((fit_x, plot_y)).T
-        cv2.polylines(out_img, np.int32([line_pts]), isClosed=False, color=(255, 255, 0), thickness=5)
+        cv2.polylines(out_img, np.int32([line_pts]), isClosed=False, color=(255, 255, 0), thickness=10)
         
         lane_x = nz_pixels_x[lane_pixels]
         lane_y = nz_pixels_y[lane_pixels]
-        out_img[lane_y, lane_x, :] = (255, 0, 0)
+        #out_img[lane_y, lane_x, :] = (255, 0, 0)
         
         if (len(lane_y) > 0):
-            fit_img, self.current_fit = self.fit_line(bin_img, (lane_y, lane_x), degree=2)
+            fit_img = self.fit_line(bin_img, (lane_y, lane_x), degree=2)
             out_img = cv2.addWeighted(out_img, 1, fit_img, 1, 0)
         return out_img
         
@@ -192,7 +199,9 @@ class Lane():
     #function called by Car object whenever a good BT frame achieved
     #This function then decides which (detection or tracking) to call.
     def find_lane(self, bin_img, side='left'):
+        found_lane_flag = False
         out_img = None
+        
         if bin_img is None:
             self.current_fit = None
         else:
@@ -200,9 +209,11 @@ class Lane():
                 out_img = self.track_lane(bin_img)
             else:
                 out_img = self.detect_lane(bin_img, side=side)
+            if self.current_fit is not None:
+                found_lane_flag = True
+                self.calc_RoC()
                 
-        self.update_state()
-        return out_img
+        return out_img, found_lane_flag
         
     #function called every time a new frame is forwared to the pipeline
     '''
@@ -216,23 +227,35 @@ class Lane():
             self.lane_detected()
         
         if self.is_tracking:
-            self.calc_RoC(10)
+            #self.calc_RoC()
             self.calc_base_position()
             
     def no_lane_detected(self):
+        self.curr_x = None
+        self.curr_roc = None
         self.no_lane_detected_frames += 1
-        if self.no_lane_detected_frames == 5:
+        print(self.lane_type ,' No lane detected ', self.no_lane_detected_frames)
+        if self.no_lane_detected_frames >= 20:
+            print(self.lane_type ,' Resetting')
             self.reinitialize()
             
     def lane_detected(self):
+        
         self.is_tracking = True
         self.no_lane_detected_frames = 0
         self.recent_fits.append(self.current_fit)
+        print(self.lane_type ,' detected')
+        print(self.lane_type ,' averaging over ', len(self.recent_fits))
         self.best_fit = np.mean(self.recent_fits, axis = 0)
+        #print('curr fit', self.current_fit)
+        #print('Recent fits', self.recent_fits)
         
     #RoC in meters
-    def calc_RoC(self, y):
-        self.radius_of_curvature = 1000
+    def calc_RoC(self):
+        #self.radius_of_curvature = 1000
+        y_eval = self.bin_image_shape[1]
+        self.curr_roc = ((1 + (2*self.current_fit[0]*y_eval + self.current_fit[1])**2)**1.5) / np.absolute(2*self.current_fit[0])
+        print(self.lane_type ,' roc', self.curr_roc)
         
     #position of base of the lane in meters	
     def calc_base_position(self):

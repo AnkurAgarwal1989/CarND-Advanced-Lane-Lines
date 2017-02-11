@@ -22,8 +22,8 @@ class Car():
         self.bin_image_shape = lane_config['bin_image_shape']
         
         ###Line Objects
-        self.left_Line = Lane.Lane(N, self.scale_X, self.scale_Y, self.bin_image_shape)
-        self.right_Line = Lane.Lane(N, self.scale_X, self.scale_Y, self.bin_image_shape)
+        self.left_Line = Lane.Lane(N, self.scale_X, self.scale_Y, self.bin_image_shape, 'left')
+        self.right_Line = Lane.Lane(N, self.scale_X, self.scale_Y, self.bin_image_shape, 'right')
            
         # are lanes detected. 0-None, 1-left/right, 2-both
         self.lanes_detected = None
@@ -38,18 +38,59 @@ class Car():
         self.RoC = None
       
     def update(self, bin_img=None):
-        out_left_img = self.left_Line.find_lane(bin_img)
-        out_right_img = self.right_Line.find_lane(bin_img, side='right')
+        out_left_img, left_found = self.left_Line.find_lane(bin_img)
+        out_right_img, right_found = self.right_Line.find_lane(bin_img, side='right')
+        
+        #if both left and right found, proceed with sanity check
+        #If sanity check has failed, the current fit is bad
+        if left_found and right_found:
+            if not self.sanity_check():
+                self.left_Line.current_fit=None
+                self.right_Line.current_fit=None
+        else:
+            self.left_Line.current_fit=None
+            self.right_Line.current_fit=None
+            
+        #After confirming, update the line state
+        self.left_Line.update_state()
+        self.right_Line.update_state()
+        
         if (self.is_right_lane_tracking() and self.is_left_lane_tracking()):
             self.calc_driving_lane_fit()
-            self.calc_RoC()
+            #self.calc_RoC()eee 
             self.calc_dist_from_center()
         else:
          self.driving_lane = None
          self.RoC = None
          self.dist_from_center = None
         return out_left_img, out_right_img
-         
+    
+    '''
+    Function to check if the lines are intersecting or too close
+    '''
+    def sanity_check(self):
+        print("sanity checking")
+        min_dist_between_lanes = np.min(np.abs(self.left_Line.curr_x - self.right_Line.curr_x))
+        print('min dist ', min_dist_between_lanes)
+        if min_dist_between_lanes < 200:
+            print("Lines are too close or intersecting")
+            return False
+        
+        print("RoC calc")
+        left_roc = self.left_Line.curr_roc
+        right_roc = self.right_Line.curr_roc
+        roc_limit = 800
+        print('lrc', left_roc, 'rrc', right_roc)
+        if left_roc < roc_limit or right_roc < roc_limit:
+            print("RoC too small")
+            return False
+        
+        #if abs(left_roc - right_roc) > 1000:
+            #return False
+        
+        
+        return True
+        
       
     def calc_driving_lane_fit(self):
         self.driving_lane = np.mean([self.left_Line.best_fit, self.right_Line.best_fit], axis = 0)
@@ -90,12 +131,12 @@ class Car():
             pts = np.vstack((left_points, right_points))
     
             # Draw the lane onto the warped blank image
-            left_img = cv2.polylines(warped_img, np.int32([left_points]), isClosed=False, color=(255, 255, 0), thickness=5)
+            warped_img = cv2.polylines(warped_img, np.int32([left_points]), isClosed=False, color=(255, 255, 0), thickness=5)
             
-            right_img = cv2.polylines(warped_img, np.int32([right_points]), isClosed=False, color=(255, 255, 0), thickness=5)
+            warped_img = cv2.polylines(warped_img, np.int32([right_points]), isClosed=False, color=(255, 255, 0), thickness=5)
             
-            out_img = cv2.addWeighted(left_img, 1, right_img, 1, 0)
-            poly_img = cv2.fillPoly(warped_img, np.int_([pts]), (0,255, 0))
-            out_img = cv2.addWeighted(out_img, 1, poly_img, 1, 0)
+            #out_img = cv2.addWeighted(left_img,0.5, right_img, 0.5, 0)
+            out_img = cv2.fillPoly(warped_img, np.int_([pts]), (0,255, 0))
+            #out_img = cv2.addWeighted(out_img, 1, poly_img, 1, 0)
         return out_img
         
