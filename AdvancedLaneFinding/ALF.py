@@ -73,26 +73,25 @@ def find_lanes(img, Car_obj, debug = False):
     #DEBUG_OUT
     undist_img = laneUtils.undistort(img, Car_obj.cam_calib)
     
-    #Init for left and right lane...start with None
+    #crop out ROI
+    ROI_x1, ROI_y1 = 150, 490
+    ROI_x2, ROI_y2 = img.shape[1]-ROI_x1, img.shape[0]
+    roi = laneUtils.get_ROI(undist_img, ROI_x1, ROI_y1, ROI_x2, ROI_y2)
+    
+    #Initialize left and right lanes from last best fit..start with None
     curr_left_fit = Car_obj.left_Line.best_fit
     curr_right_fit = Car_obj.right_Line.best_fit
     
-    ROI_x1, ROI_y1 = 150, 490
-    ROI_x2, ROI_y2 = img.shape[1]-ROI_x1, img.shape[0]
-    
-    roi = laneUtils.get_ROI(undist_img, ROI_x1, ROI_y1, ROI_x2, ROI_y2)
-
     #Binary threshold image. We will use the values from the previous frameso save the config
     #DEBUG_OUT
     successFlag, bin_img, Car_obj.bt_cfg = BT.binary_threshold(roi, Car_obj.bt_cfg)
-    print(Car_obj.bt_cfg)
+    
     #if successful binary thresholding, go ahead with the lane detection
     #else go to next image, save time
     left_lane_img = np.zeros((Car_obj.bin_image_shape[1], Car_obj.bin_image_shape[0], 3), dtype=np.uint8)
     right_lane_img = np.zeros_like(left_lane_img)
     lane_img = np.zeros_like(left_lane_img)
-    if not successFlag:
-        print("Bummer")
+    
     if successFlag:
         warped_bin_img = laneUtils.warp_image(bin_img, Car_obj.warp_M, Car_obj.bin_image_shape)
         warped_bin_img = warped_bin_img[:,:,0]
