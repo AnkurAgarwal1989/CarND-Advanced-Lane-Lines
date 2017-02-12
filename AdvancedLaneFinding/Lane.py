@@ -83,7 +83,7 @@ class Lane():
         self.curr_x = fit_x
         line_pts = np.vstack((self.curr_x, plot_y)).T
 
-        cv2.polylines(out_img, np.int32([line_pts]), isClosed=False, color=(255, 0, 255), thickness=5)
+        cv2.polylines(out_img, np.int32([line_pts]), isClosed=False, color=(255, 0, 0), thickness=5)
         return out_img
         
         
@@ -184,13 +184,13 @@ class Lane():
         for deg,coeff in enumerate(self.best_fit[::-1]):
             fit_x += coeff*(plot_y**deg)
         line_pts = np.vstack((fit_x, plot_y)).T
-        cv2.polylines(out_img, np.int32([line_pts]), isClosed=False, color=(255, 255, 0), thickness=10)
+        cv2.polylines(out_img, np.int32([line_pts]), isClosed=False, color=(0, 0, 255), thickness=5)
         
         lane_x = nz_pixels_x[lane_pixels]
         lane_y = nz_pixels_y[lane_pixels]
         #out_img[lane_y, lane_x, :] = (255, 0, 0)
-        
-        if (len(lane_y) > 0):
+        print("track lenght y", len(np.unique(lane_y)), len(lane_y))
+        if (len(lane_y) > 0 and len(np.unique(lane_y)) > 80):
             fit_img = self.fit_line(bin_img, (lane_y, lane_x), degree=2)
             out_img = cv2.addWeighted(out_img, 1, fit_img, 1, 0)
         return out_img
@@ -235,7 +235,7 @@ class Lane():
         self.curr_roc = None
         self.no_lane_detected_frames += 1
         print(self.lane_type ,' No lane detected ', self.no_lane_detected_frames)
-        if self.no_lane_detected_frames >= 20:
+        if self.no_lane_detected_frames >= 10:
             print(self.lane_type ,' Resetting')
             self.reinitialize()
             

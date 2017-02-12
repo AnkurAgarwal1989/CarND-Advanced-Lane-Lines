@@ -38,6 +38,13 @@ class Car():
         self.RoC = None
       
     def update(self, bin_img=None):
+        if bin_img is None:
+            self.left_Line.current_fit=None
+            self.right_Line.current_fit=None
+            self.left_Line.update_state()
+            self.right_Line.update_state()
+            return None, None
+            
         out_left_img, left_found = self.left_Line.find_lane(bin_img)
         out_right_img, right_found = self.right_Line.find_lane(bin_img, side='right')
         
@@ -72,14 +79,14 @@ class Car():
         print("sanity checking")
         min_dist_between_lanes = np.min(np.abs(self.left_Line.curr_x - self.right_Line.curr_x))
         print('min dist ', min_dist_between_lanes)
-        if min_dist_between_lanes < 200:
+        if min_dist_between_lanes < 180:
             print("Lines are too close or intersecting")
             return False
         
         print("RoC calc")
         left_roc = self.left_Line.curr_roc
         right_roc = self.right_Line.curr_roc
-        roc_limit = 800
+        roc_limit = 130
         print('lrc', left_roc, 'rrc', right_roc)
         if left_roc < roc_limit or right_roc < roc_limit:
             print("RoC too small")

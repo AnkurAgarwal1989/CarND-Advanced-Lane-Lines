@@ -20,7 +20,7 @@ import utilities as laneUtils
 bin_img_shape = (640, 240)
 
 lane_config = {}
-lane_config['tracking_window'] = 30
+lane_config['tracking_window'] = 20
 lane_config['scale_X'] = 3.7/427 #(meters/pixels)
 lane_config['scale_Y'] = 3.048/72 #(meters/pixels)
 lane_config['bin_image_shape'] = bin_img_shape
@@ -37,10 +37,10 @@ bt_config['minLane'] = 0.015
 bt_config['maxLane'] = 0.025
 
 warp_config = {}
-warp_config['P1'] = [385, 0]
-warp_config['P2'] = [602, 0]
-warp_config['P3'] = [924, 203]
-warp_config['P4'] = [83, 203]
+warp_config['P1'] = [402, 10]#[385, 0]
+warp_config['P2'] = [530, 10]#[602, 0]
+warp_config['P3'] = [930, 270]#[924, 203]
+warp_config['P4'] = [15, 270]#[83, 203]
 warp_config['offset'] = 100
 warp_config['bin_image_shape'] = lane_config['bin_image_shape']
 
@@ -73,22 +73,21 @@ def draw_lanes(img, Car_obj, debug = False):
     undist_img = laneUtils.undistort(img, Car_obj.cam_calib)
     
     #crop out ROI
-    ROI_x1, ROI_y1 = 150, 490
+    ROI_x1, ROI_y1 = 175, 450
     ROI_x2, ROI_y2 = img.shape[1]-ROI_x1, img.shape[0]
     roi = laneUtils.get_ROI(undist_img, ROI_x1, ROI_y1, ROI_x2, ROI_y2)
     
     #Binary threshold image. We will use the values from the previous frameso save the config
     #DEBUG_OUT
     successFlag, bin_img, Car_obj.bt_cfg = BT.binary_threshold(roi, Car_obj.bt_cfg)
-    print(Car_obj.bt_cfg)
     #if successful binary thresholding, go ahead with the lane detection
     #else go to next image, save time
     left_lane_img = np.zeros((Car_obj.bin_image_shape[1], Car_obj.bin_image_shape[0], 3), dtype=np.uint8)
     right_lane_img = np.zeros_like(left_lane_img)
     lane_img = np.zeros_like(left_lane_img)
     
-    #print(Car_obj.bt_cfg)
     
+    #print(Car_obj.bt_cfg)
     if successFlag:
         #Warp ROI to Bird's Eye view
         warped_bin_img = laneUtils.warp_image(bin_img, Car_obj.warp_M, Car_obj.bin_image_shape)
@@ -107,11 +106,23 @@ def draw_lanes(img, Car_obj, debug = False):
     out_img = Car_obj.draw_lanes(warped_color_roi);
 
     unwarped_roi = laneUtils.warp_image(out_img, Car_obj.warp_Minv, (roi.shape[1], roi.shape[0]))
+    b,g,r = cv2.split(unwarped_roi)
+    #img2gray = unwarped_roi[unwarped_roicv2.cvtColor(unwarped_roi,cv2.COLOR_BGR2GRAY)
+    ret, mask = cv2.threshold(g, 254, 255, cv2.THRESH_BINARY)
+    mask_inv = cv2.bitwise_not(mask)
+    
+    #blank out area in original roi
+    img_fg = cv2.bitwise_and(unwarped_roi, unwarped_roi, mask=mask)
+    img_bg = cv2.bitwise_and(roi, roi, mask=mask_inv)
+    
+    final_roi = cv2.add(img_bg, img_fg)
+    final_roi = cv2.addWeighted(final_roi, 0.5,roi, 0.5, 0)
     #black_pixels = unwarped_roi[unwarped_roi == (0,0,0,)]
     #unwarped_roi[black_pixels] = roi[black_pixels]   
-    undist_img[ROI_y1:ROI_y2, ROI_x1:ROI_x2, :] = unwarped_roi
+    undist_img[ROI_y1:ROI_y2, ROI_x1:ROI_x2, :] = final_roi
+    #np.dstack((img2gray, img2gray, img2gray))
     undist_img[0:240,0:640,:] = lane_img
-    return Car_obj, undist_img
+    return Car_obj, undist_img 
 #    	2
 #        #if we know the position of both left and right lanes
 #        #draw and reproject to original undistorted image
@@ -173,7 +184,7 @@ def process_video(video_name, Car_obj, debug = False):
         cv_image = cv2.putText(cv_image, str(i), (0,30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0), 2)
         out_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
         out_video.append_data(out_image)
-        #out_video.write(cv_image)
+        #out_video.append_data(cv_image)
     out_video.close()
     #out_video.release()
     return Car_obj, out_video
