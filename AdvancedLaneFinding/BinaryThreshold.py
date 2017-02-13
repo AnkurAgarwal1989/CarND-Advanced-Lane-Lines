@@ -72,10 +72,12 @@ def binary_threshold(roi, config):
     maxarea = maxLane * total_pixels
     
     success = True
-    
+    ddth = 0
     while ((nzcount < minarea) | (nzcount >= maxarea)) & (wiggleScope):
         print(nzcount/total_pixels, counter, R_Thresh, V_Thresh)
         counter += 1
+        if (counter == 10):
+            ddth = 3
         if (counter == bailout):
             print("Unable to find a good value in {} steps. Bailing out!".format(bailout))
             success = False
@@ -89,14 +91,14 @@ def binary_threshold(roi, config):
         if wiggleScope:
             if (nzcount < minarea):
                 if VwiggleScope:
-                    V_Thresh -= V_Range.dTh
+                    V_Thresh -= (V_Range.dTh - ddth)
                 if RwiggleScope:
-                    R_Thresh -= R_Range.dTh
+                    R_Thresh -= (R_Range.dTh - ddth)
             else:
                 if VwiggleScope:
-                    V_Thresh += V_Range.dTh
+                    V_Thresh += (V_Range.dTh - ddth)
                 if RwiggleScope:
-                    R_Thresh += R_Range.dTh
+                    R_Thresh += (R_Range.dTh - ddth)
                     
             thresh_img = np.zeros_like(thresh_img)
             thresh_img[(V >= V_Thresh) | (R >= R_Thresh)] = 255

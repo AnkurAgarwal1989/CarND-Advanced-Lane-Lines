@@ -10,8 +10,16 @@ Created on Wed Feb  1 21:06:10 2017
 import cv2
 import numpy as np
 
-def get_ROI(img, x1, y1, x2, y2):
+def get_ROI(img, x_offset, y_begin):
+    x1, y1 = x_offset, y_begin
+    x2, y2 = img.shape[1]-x1, img.shape[0]
     return img[y1:y2, x1:x2, :]
+
+def set_ROI(img, x_offset, y_begin, new_img):
+    x1, y1 = x_offset, y_begin
+    x2, y2 = img.shape[1]-x1, img.shape[0]
+    img[y1:y2, x1:x2, :] = new_img
+    return img
 
 def grayscale(img):
     '''Applies the Grayscale transform
