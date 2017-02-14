@@ -1,0 +1,216 @@
+<!doctype html>
+<html>
+<head>
+<meta charset='UTF-8'><meta name='viewport' content='width=device-width initial-scale=1'>
+<title>Advanced Lane Finding.pdf</title><link href='http://fonts.googleapis.com/css?family=Open+Sans:400italic,700italic,700,400&subset=latin,latin-ext' rel='stylesheet' type='text/css'><style type='text/css'>html, body {overflow-x: initial !important;}html { font-size: 14px; background-color: rgb(255, 255, 255); color: rgb(51, 51, 51); }
+body { margin: 0px; padding: 0px; height: auto; bottom: 0px; top: 0px; left: 0px; right: 0px; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 1rem; line-height: 1.42857; overflow-x: hidden; background: inherit; }
+a:active, a:hover { outline: 0px; }
+.in-text-selection, ::selection { background: rgb(181, 214, 252); text-shadow: none; }
+#write { margin: 0px auto; height: auto; width: inherit; word-break: normal; word-wrap: break-word; position: relative; padding-bottom: 70px; white-space: pre-wrap; overflow-x: auto; }
+.for-image #write { padding-left: 8px; padding-right: 8px; }
+body.typora-export { padding-left: 30px; padding-right: 30px; }
+@media screen and (max-width: 500px) { 
+  body.typora-export { padding-left: 0px; padding-right: 0px; }
+  .CodeMirror-sizer { margin-left: 0px !important; }
+  .CodeMirror-gutters { display: none !important; }
+}
+.typora-export #write { margin: 0px auto; }
+#write > p:first-child, #write > ul:first-child, #write > ol:first-child, #write > pre:first-child, #write > blockquote:first-child, #write > div:first-child, #write > table:first-child { margin-top: 30px; }
+#write li > table:first-child { margin-top: -20px; }
+img { max-width: 100%; vertical-align: middle; }
+input, button, select, textarea { color: inherit; font-style: inherit; font-variant: inherit; font-weight: inherit; font-stretch: inherit; font-size: inherit; line-height: inherit; font-family: inherit; }
+input[type="checkbox"], input[type="radio"] { line-height: normal; padding: 0px; }
+::before, ::after, * { box-sizing: border-box; }
+#write p, #write h1, #write h2, #write h3, #write h4, #write h5, #write h6, #write div, #write pre { width: inherit; }
+#write p, #write h1, #write h2, #write h3, #write h4, #write h5, #write h6 { position: relative; }
+h1 { font-size: 2rem; }
+h2 { font-size: 1.8rem; }
+h3 { font-size: 1.6rem; }
+h4 { font-size: 1.4rem; }
+h5 { font-size: 1.2rem; }
+h6 { font-size: 1rem; }
+p { -webkit-margin-before: 1rem; -webkit-margin-after: 1rem; -webkit-margin-start: 0px; -webkit-margin-end: 0px; }
+.mathjax-block { margin-top: 0px; margin-bottom: 0px; -webkit-margin-before: 0rem; -webkit-margin-after: 0rem; }
+.hidden { display: none; }
+.md-blockmeta { color: rgb(204, 204, 204); font-weight: bold; font-style: italic; }
+a { cursor: pointer; }
+#write input[type="checkbox"] { cursor: pointer; width: inherit; height: inherit; margin: 4px 0px 0px; }
+tr { break-inside: avoid; break-after: auto; }
+thead { display: table-header-group; }
+table { border-collapse: collapse; border-spacing: 0px; width: 100%; overflow: auto; break-inside: auto; text-align: left; }
+table.md-table td { min-width: 80px; }
+.CodeMirror-gutters { border-right: 0px; background-color: inherit; }
+.CodeMirror { text-align: left; }
+.CodeMirror-placeholder { opacity: 0.3; }
+.CodeMirror pre { padding: 0px 4px; }
+.CodeMirror-lines { padding: 0px; }
+div.hr:focus { cursor: none; }
+pre { white-space: pre-wrap; }
+.CodeMirror-gutters { margin-right: 4px; }
+.md-fences { font-size: 0.9rem; display: block; break-inside: avoid; text-align: left; overflow: visible; white-space: pre; background: inherit; position: relative !important; }
+.md-diagram-panel { width: 100%; margin-top: 10px; text-align: center; padding-top: 0px; padding-bottom: 8px; overflow-x: auto; }
+.md-fences .CodeMirror.CodeMirror-wrap { top: -1.6em; margin-bottom: -1.6em; }
+.md-fences.mock-cm { white-space: pre-wrap; }
+.show-fences-line-number .md-fences { padding-left: 0px; }
+.show-fences-line-number .md-fences.mock-cm { padding-left: 40px; }
+.footnotes { opacity: 0.8; font-size: 0.9rem; padding-top: 1em; padding-bottom: 1em; }
+.footnotes + .footnotes { margin-top: -1em; }
+.md-reset { margin: 0px; padding: 0px; border: 0px; outline: 0px; vertical-align: top; background: transparent; text-decoration: none; text-shadow: none; float: none; position: static; width: auto; height: auto; white-space: nowrap; cursor: inherit; -webkit-tap-highlight-color: transparent; line-height: normal; font-weight: normal; text-align: left; box-sizing: content-box; direction: ltr; }
+li div { padding-top: 0px; }
+blockquote { margin: 1rem 0px; }
+li p, li .mathjax-block { margin: 0.5rem 0px; }
+li { margin: 0px; position: relative; }
+blockquote > :last-child { margin-bottom: 0px; }
+blockquote > :first-child { margin-top: 0px; }
+.footnotes-area { color: rgb(136, 136, 136); margin-top: 0.714rem; padding-bottom: 0.143rem; }
+@media print { 
+  html, body { height: 100%; }
+  .typora-export * { -webkit-print-color-adjust: exact; }
+  h1, h2, h3, h4, h5, h6 { break-after: avoid-page; orphans: 2; }
+  p { orphans: 4; }
+  html.blink-to-pdf { font-size: 13px; }
+  .typora-export #write { padding-left: 1cm; padding-right: 1cm; }
+  .typora-export #write::after { height: 0px; }
+  @page { margin: 20mm 0mm; }
+}
+.footnote-line { margin-top: 0.714em; font-size: 0.7em; }
+a img, img a { cursor: pointer; }
+pre.md-meta-block { font-size: 0.8rem; min-height: 2.86rem; white-space: pre-wrap; background: rgb(204, 204, 204); display: block; overflow-x: hidden; }
+p .md-image:only-child { display: inline-block; width: 100%; text-align: center; }
+#write .MathJax_Display { margin: 0.8em 0px 0px; }
+.mathjax-block { white-space: pre; overflow: hidden; width: 100%; }
+p + .mathjax-block { margin-top: -1.143rem; }
+.mathjax-block:not(:empty)::after { display: none; }
+[contenteditable="true"]:active, [contenteditable="true"]:focus { outline: none; box-shadow: none; }
+.task-list { list-style-type: none; }
+.task-list-item { position: relative; padding-left: 1em; }
+.task-list-item input { position: absolute; top: 0px; left: 0px; }
+.math { font-size: 1rem; }
+.md-toc { min-height: 3.58rem; position: relative; font-size: 0.9rem; border-radius: 10px; }
+.md-toc-content { position: relative; margin-left: 0px; }
+.md-toc::after, .md-toc-content::after { display: none; }
+.md-toc-item { display: block; color: rgb(65, 131, 196); text-decoration: none; }
+.md-toc-inner:hover { }
+.md-toc-inner { display: inline-block; cursor: pointer; }
+.md-toc-h1 .md-toc-inner { margin-left: 0px; font-weight: bold; }
+.md-toc-h2 .md-toc-inner { margin-left: 2em; }
+.md-toc-h3 .md-toc-inner { margin-left: 4em; }
+.md-toc-h4 .md-toc-inner { margin-left: 6em; }
+.md-toc-h5 .md-toc-inner { margin-left: 8em; }
+.md-toc-h6 .md-toc-inner { margin-left: 10em; }
+@media screen and (max-width: 48em) { 
+  .md-toc-h3 .md-toc-inner { margin-left: 3.5em; }
+  .md-toc-h4 .md-toc-inner { margin-left: 5em; }
+  .md-toc-h5 .md-toc-inner { margin-left: 6.5em; }
+  .md-toc-h6 .md-toc-inner { margin-left: 8em; }
+}
+a.md-toc-inner { font-size: inherit; font-style: inherit; font-weight: inherit; line-height: inherit; }
+.footnote-line a:not(.reversefootnote) { color: inherit; }
+.md-attr { display: none; }
+.md-fn-count::after { content: "."; }
+.md-tag { opacity: 0.5; }
+.md-comment { color: rgb(162, 127, 3); opacity: 0.8; font-family: monospace; }
+code { text-align: left; }
+h1 .md-tag, h2 .md-tag, h3 .md-tag, h4 .md-tag, h5 .md-tag, h6 .md-tag { font-weight: initial; opacity: 0.35; }
+a.md-print-anchor { border-width: initial !important; border-style: none !important; border-color: initial !important; display: inline-block !important; position: absolute !important; width: 1px !important; right: 0px !important; outline: none !important; background: transparent !important; text-decoration: initial !important; text-shadow: initial !important; }
+.md-inline-math .MathJax_SVG .noError { display: none !important; }
+.mathjax-block .MathJax_SVG_Display { text-align: center; margin: 1em 0em; position: relative; text-indent: 0px; max-width: none; max-height: none; min-height: 0px; min-width: 100%; width: auto; display: block !important; }
+.MathJax_SVG_Display, .md-inline-math .MathJax_SVG_Display { width: auto; margin: inherit; display: inline-block !important; }
+.MathJax_SVG .MJX-monospace { font-family: monospace; }
+.MathJax_SVG .MJX-sans-serif { font-family: sans-serif; }
+.MathJax_SVG { display: inline; font-style: normal; font-weight: normal; line-height: normal; zoom: 90%; text-indent: 0px; text-align: left; text-transform: none; letter-spacing: normal; word-spacing: normal; word-wrap: normal; white-space: nowrap; float: none; direction: ltr; max-width: none; max-height: none; min-width: 0px; min-height: 0px; border: 0px; padding: 0px; margin: 0px; }
+.MathJax_SVG * { transition: none; }
+
+
+@font-face { font-family: "Open Sans"; font-style: normal; font-weight: normal; src: local("Open Sans Regular"), url("./github/400.woff") format("woff"); }
+@font-face { font-family: "Open Sans"; font-style: italic; font-weight: normal; src: local("Open Sans Italic"), url("./github/400i.woff") format("woff"); }
+@font-face { font-family: "Open Sans"; font-style: normal; font-weight: bold; src: local("Open Sans Bold"), url("./github/700.woff") format("woff"); }
+@font-face { font-family: "Open Sans"; font-style: italic; font-weight: bold; src: local("Open Sans Bold Italic"), url("./github/700i.woff") format("woff"); }
+html { font-size: 16px; }
+body { font-family: "Open Sans", "Clear Sans", "Helvetica Neue", Helvetica, Arial, sans-serif; color: rgb(51, 51, 51); line-height: 1.6; }
+#write { max-width: 860px; margin: 0px auto; padding: 20px 30px 100px; }
+#write > ul:first-child, #write > ol:first-child { margin-top: 30px; }
+body > :first-child { margin-top: 0px !important; }
+body > :last-child { margin-bottom: 0px !important; }
+a { color: rgb(65, 131, 196); }
+h1, h2, h3, h4, h5, h6 { position: relative; margin-top: 1rem; margin-bottom: 1rem; font-weight: bold; line-height: 1.4; cursor: text; }
+h1:hover a.anchor, h2:hover a.anchor, h3:hover a.anchor, h4:hover a.anchor, h5:hover a.anchor, h6:hover a.anchor { text-decoration: none; }
+h1 tt, h1 code { font-size: inherit; }
+h2 tt, h2 code { font-size: inherit; }
+h3 tt, h3 code { font-size: inherit; }
+h4 tt, h4 code { font-size: inherit; }
+h5 tt, h5 code { font-size: inherit; }
+h6 tt, h6 code { font-size: inherit; }
+h1 { padding-bottom: 0.3em; font-size: 2.25em; line-height: 1.2; border-bottom: 1px solid rgb(238, 238, 238); }
+h2 { padding-bottom: 0.3em; font-size: 1.75em; line-height: 1.225; border-bottom: 1px solid rgb(238, 238, 238); }
+h3 { font-size: 1.5em; line-height: 1.43; }
+h4 { font-size: 1.25em; }
+h5 { font-size: 1em; }
+h6 { font-size: 1em; color: rgb(119, 119, 119); }
+p, blockquote, ul, ol, dl, table { margin: 0.8em 0px; }
+li > ol, li > ul { margin: 0px; }
+hr { height: 4px; padding: 0px; margin: 16px 0px; background-color: rgb(231, 231, 231); border-width: 0px 0px 1px; border-style: none none solid; border-top-color: initial; border-right-color: initial; border-left-color: initial; border-image: initial; overflow: hidden; box-sizing: content-box; border-bottom-color: rgb(221, 221, 221); }
+body > h2:first-child { margin-top: 0px; padding-top: 0px; }
+body > h1:first-child { margin-top: 0px; padding-top: 0px; }
+body > h1:first-child + h2 { margin-top: 0px; padding-top: 0px; }
+body > h3:first-child, body > h4:first-child, body > h5:first-child, body > h6:first-child { margin-top: 0px; padding-top: 0px; }
+a:first-child h1, a:first-child h2, a:first-child h3, a:first-child h4, a:first-child h5, a:first-child h6 { margin-top: 0px; padding-top: 0px; }
+h1 p, h2 p, h3 p, h4 p, h5 p, h6 p { margin-top: 0px; }
+li p.first { display: inline-block; }
+ul, ol { padding-left: 30px; }
+ul:first-child, ol:first-child { margin-top: 0px; }
+ul:last-child, ol:last-child { margin-bottom: 0px; }
+blockquote { border-left: 4px solid rgb(221, 221, 221); padding: 0px 15px; color: rgb(119, 119, 119); }
+blockquote blockquote { padding-right: 0px; }
+table { padding: 0px; word-break: initial; }
+#write { overflow-x: auto; }
+table tr { border-top: 1px solid rgb(204, 204, 204); background-color: white; margin: 0px; padding: 0px; }
+table tr:nth-child(2n) { background-color: rgb(248, 248, 248); }
+table tr th { font-weight: bold; border: 1px solid rgb(204, 204, 204); text-align: left; margin: 0px; padding: 6px 13px; }
+table tr td { border: 1px solid rgb(204, 204, 204); text-align: left; margin: 0px; padding: 6px 13px; }
+table tr th:first-child, table tr td:first-child { margin-top: 0px; }
+table tr th:last-child, table tr td:last-child { margin-bottom: 0px; }
+.CodeMirror-gutters { border-right: 1px solid rgb(221, 221, 221); }
+.md-fences, code, tt { border: 1px solid rgb(221, 221, 221); background-color: rgb(248, 248, 248); border-radius: 3px; font-family: Consolas, "Liberation Mono", Courier, monospace; padding: 2px 4px 0px; font-size: 0.9em; }
+.md-fences { margin-bottom: 15px; margin-top: 15px; padding: 8px 1em 6px; }
+.task-list { padding-left: 0px; }
+.task-list-item { padding-left: 32px; }
+.task-list-item input { top: 3px; left: 8px; }
+@media screen and (min-width: 914px) { 
+}
+@media print { 
+  html { font-size: 13px; }
+  table, pre { break-inside: avoid; }
+  pre { word-wrap: break-word; }
+}
+.md-fences { background-color: rgb(248, 248, 248); }
+#write pre.md-meta-block { padding: 1rem; font-size: 85%; line-height: 1.45; background-color: rgb(247, 247, 247); border: 0px; border-radius: 3px; color: rgb(119, 119, 119); margin-top: 0px !important; }
+.mathjax-block > .code-tooltip { bottom: 0.375rem; }
+#write > h3.md-focus::before { left: -1.5625rem; top: 0.375rem; }
+#write > h4.md-focus::before { left: -1.5625rem; top: 0.285714rem; }
+#write > h5.md-focus::before { left: -1.5625rem; top: 0.285714rem; }
+#write > h6.md-focus::before { left: -1.5625rem; top: 0.285714rem; }
+.md-image > .md-meta { border: 1px solid rgb(221, 221, 221); border-radius: 3px; font-family: Consolas, "Liberation Mono", Courier, monospace; padding: 2px 4px 0px; font-size: 0.9em; color: inherit; }
+.md-tag { color: inherit; }
+.md-toc { margin-top: 20px; padding-bottom: 20px; }
+#typora-quick-open { border: 1px solid rgb(221, 221, 221); background-color: rgb(248, 248, 248); }
+#typora-quick-open-item { background-color: rgb(250, 250, 250); border-color: rgb(254, 254, 254) rgb(229, 229, 229) rgb(229, 229, 229) rgb(238, 238, 238); border-style: solid; border-width: 1px; }
+#md-notification::before { top: 10px; }
+.on-focus-mode blockquote { border-left-color: rgba(85, 85, 85, 0.117647); }
+header, .context-menu, .megamenu-content, footer { font-family: "Segoe UI", Arial, sans-serif; }
+
+
+
+
+
+
+</style>
+</head>
+<body class='typora-export' >
+<div  id='write'  class = 'is-node'><h2><a name='header-c18' class='md-header-anchor '></a>Advanced Lane Finding</h2><h3><a name='header-c20' class='md-header-anchor '></a>A brief summary of the algorithm used for finding the current driving lane. This write-up explains the logic used and discusses some of the results.</h3><hr /><p><strong>Advanced Lane Finding Project</strong></p><p>The goals / steps of this project are as following:</p><ul><li>Compute the camera calibration matrix and distortion coefficients given a set of chessboard images.</li><li>Apply a distortion correction to raw images.</li><li>Use color transforms, gradients, etc., to create a thresholded binary image.</li><li>Apply a perspective transform to rectify binary image (&quot;birds-eye view&quot;).</li><li>Detect lane pixels and fit to find the lane boundary.</li><li>Determine the curvature of the lane and vehicle position with respect to center.</li><li>Warp the detected lane boundaries back onto the original image.</li><li>Output visual display of the lane boundaries and numerical estimation of lane curvature and vehicle position.</li></ul><p></p><h2><a name='header-c68' class='md-header-anchor '></a>Section I</h2><h3><a name='header-c69' class='md-header-anchor '></a>Code Structure</h3><p>The code consists of 5 major parts. Later sections elaborate upon these.</p><ul><li><p><em>CameraCalibration</em> class (<em>CameraCalibration.py</em>)</p><ul><li>Tries to read an already existing camera calibration.</li><li>If not found, calibrates the camera with the provided images and saves the calibration.</li></ul></li><li><p><em>BT</em> module (<em>*BinaryThreshold</em> .py*)</p><ul><li>Set of functions and structures used for smart binary thresholding.</li></ul></li><li><p><em>Lane</em> class (<em>Lane.py</em>)</p><ul><li>Class to hold methods and data for lane detection/ tracking, fitting and smoothing.</li><li>Each lane (left or right) is an object of Lane type. This improves code reuse and removes repetition.</li></ul></li><li><p><em>Car</em> class (<em>Car.py</em>)</p><ul><li>Master class that holds all Lane objects.</li><li>Deals with initializing the objects, sanity checks between lanes and final drawing and annotation.</li></ul></li><li><p><em>laneUtils</em> (<em>utilities.py</em>)</p><ul><li>Set of common functions used by other modules or classes.</li></ul></li><li><p><em>ALF.py</em></p><ul><li>All the above are then used by the main python file.</li></ul></li></ul><h2><a name='header-c124' class='md-header-anchor '></a>Section II</h2><hr /><h3><a name='header-c126' class='md-header-anchor '></a>Camera Calibration</h3><ul><li>The code for camera calibration is contained in the <code>CameraCalibration.py</code> file. The calibration object first checks if an existing calibration can be read. We proceed with the calibration step if we don&#39;t find one. The calibration is then saved for use next time.</li><li>This is a classical <em>monocular camera calibration</em> setup using a checkerboard pattern. Given a known 3D object (in this case a plane with regularly spaced points), we aim to find the camera intrinsics and distortion coefficients that <em>minimize the re-projection error between 2D images and the 2D projection of the object</em>. </li><li>The checkerboard is fixed in 3D at z=0, with equally spaced points in x and y plane. We name this set of points <code>obj</code>. These points correspond to the board and remain the same for all images of the board.</li><li>At every successful detection (all points seen) of the chessboard in the test images, the detected <code>image_corners</code> and are appended to a growing list <code>image_pts</code>. The set of points <code>obj</code> is also appended to <code>obj_pts</code>.</li><li>For calibration the <code>obj_pts</code> and  <code>image_pts</code>  are provided to the <code>cv2.calibrateCamera()</code> function, which returns an intrinsic matrix <code>mtx</code> and the distortion coefficients <code>dist</code> . This <code>dist</code> is applied through <code>cv2.undistort()</code> function to get the following results.</li><li>Here we show the effect of calibration and undistortion on a calibration image.
+<span class='md-image'><img alt='alt text' src='./output_images/calibration.jpg' title='Calibration Sample'></img></span></li></ul><h3><a name='header-c148' class='md-header-anchor '></a>Pipeline (single images)</h3><h4><a name='header-c149' class='md-header-anchor '></a>1. Distortion-corrected image.</h4><ul><li>The image is undistorted using the camera intrinsics and undistortion coefficients calculated in the calibration step. </li><li>This is done by <code>laneUtils.undistort</code> called in <code>_process</code> function in <code>ALF.py</code>. Here is a sample output. The third figure shows the effect of distortion on the first image.</li></ul><p><span class='md-image'><img alt='alt text' src='./output_images/undistort_in.jpg' title='Undistorted Input'></img></span></p><p><span class='md-image'><img alt='alt text' src='./output_images/undistort_out.jpg' title='Undistorted Output'></img></span></p><p><span class='md-image'><img alt='alt text' src='./output_images/undistort_combo.jpg' title='Undistortion Visualized'></img></span></p><p></p><h4><a name='header-c165' class='md-header-anchor '></a>2. ROI cropping.</h4><ul><li>We are only interested in the lane part of the image. So to increase the processing speeds and reduce noise from the image, we crop out an image of shape <code>(930,  270, 3)</code> starting at <code>175, 450</code> from the undistorted image.</li><li>All further processing is done on this reducec ROI image.
+<span class='md-image'><img alt='alt text' src='./output_images/roi.jpg' title='ROI'></img></span></li></ul><p></p><h4><a name='header-c176' class='md-header-anchor '></a>3. Binary Thresholding.</h4><ul><li><p>Binary thresholding is a very important step in the pipeline. Some challenges:</p><ul><li>We need to be able to differentiate the lane pixels in the image in varying light conditions.</li><li>We should be robust to noise. </li><li>If the threshold is too low, we will have too many pixels resulting in spurious detections.</li><li>if the threshold is too high, we may not find enough pixels to get a fit.</li></ul></li><li><p><strong>Keeping the above in mind and after looking at a few sample images, smart adaptive thresholding algorithm is used. This helps in avoiding to select a particular value and makes it robust to changing road structure and lighting</strong>.</p></li><li><p>The code for this can be found in <code>binary_threshold</code> function on <code>BinaryThreshold.py</code>.</p></li><li><p>A combination of the <strong>R</strong> channel from RGB and the <strong>V</strong> channel for HSV is used because they seemed most responsive to the white and yellow colors.</p></li><li><p>The best lane fits were achieved when the <u>lane pixels accounted for 1-3.5% of the total image area</u> (this was done by approximating  the length of the lane in the image and calculating the maximum number of lane pixels possible).</p></li><li><p>Starting at a relatively lenient threshold <code>R_Init and V_init</code> of 150 for both R and V, we allow the algorithm to vary both the thresholds <code>dTh</code> till the lane pixel count reaches within 1-3.5%. This is like gradient, where the gradient</p><ul><li>-1 , lane pixel count &lt; <code>minarea</code> (1%)</li><li>+1 , lane pixel count &gt; <code>minarea</code> (1%) and &lt; <code>minarea</code> (3.5%)</li></ul></li><li><p>If a good value is not found in 10 steps, the values are probably overshooting, and we make the search <strong>finer</strong> by reducing <code>dTh</code>.</p></li><li><p>Once we find a good value for R and V we save it to <code>R_Best and V_Best</code>. We keep using this value for future frames, till the area condition is not valid. Then we re-iterate and find a new value that works.</p></li><li><p>If we are unable to find a value that works within our range <code>BT.ThresholdRange</code> or within a given number of steps <code>bailout_counter</code>, we report a failure and do not proceed with lane detection.</p></li><li><p>Here is a sample output of the various steps the algorithm takes. The GIF shows the thresholding over 11 steps. The final image is the one accepted for lane detection by the algorithm. </p></li></ul><p><span class='md-image'><img alt='alt text' src='./output_images/binary_thresh.gif' title='Binary Thresholding'></img></span></p><p></p><h4><a name='header-c232' class='md-header-anchor '></a>4. Perspective Transform:</h4><ul><li><p>We need to apply a perspective transform to get a bird&#39;s eye view of the lanes. The code to do this can be found in</p><p>​	<code>laneUtils.get_warp_unwarp_matrices</code> : returns warping matrix and its inverse. Called by <code>main()</code>.</p><p>​	<code>laneUtils.warp_image()</code>. Warps image by the given matrix. Called by <code>get_lanes()</code> in <code>Car</code> class.</p></li><li><p>The ROI is transformed into a <code>(640, 240)</code> image. The points were selected by looking at a few images of straight lines and then hardcoded to the following source and destination points:</p></li></ul><table><thead><tr><th style='text-align:center;' >Source</th><th style='text-align:center;' >Destination</th></tr></thead><tbody><tr><td style='text-align:center;' >402, 10</td><td style='text-align:center;' >100, 0</td></tr><tr><td style='text-align:center;' >203, 10</td><td style='text-align:center;' >540, 0</td></tr><tr><td style='text-align:center;' >930, 270</td><td style='text-align:center;' >100, 240</td></tr><tr><td style='text-align:center;' >15, 270</td><td style='text-align:center;' >540, 240</td></tr></tbody></table><p>Here is a sample image which shows the bird&#39;s eye view.</p><p><span class='md-image'><img alt='alt text' src='./output_images/bird&#39;s_eye.jpg' title='Warp Example'></img></span></p><p></p><h4><a name='header-c266' class='md-header-anchor '></a>5. Identifying lane-line pixels and polynomial fitting</h4><ul><li><p>Majority of the <code>Lane</code> class is dedicated to detecting/ tracking lines and calculating fit.</p></li><li><p>Two approaches are used for identifying lane pixels:</p><ul><li><p>If no previous tracking information exists, the sliding window approach is used. <code>Lane.detect_lane()</code></p><ul><li>Peaks are detected in each half of the image (One half for left lane and other for right).</li><li>The image is then split into rows of height <code>sw_height</code>.</li><li>Starting from bottom, pixels around the centroid within a radius <code>sw_width</code> are searched. If <strong>white</strong> lane pixels are found, they are appended to a list.</li><li>A new centroid is calculated for the next row, if enough pixels <code>num_white</code> are found.</li></ul></li><li><p>If we have a previous tracking information, we search for pixels around that line. <code>Lane.track_lane()</code></p><ul><li>For every y location, we calculate the x location.</li><li>In a window <code>search_width</code> around the x location, we look for lane pixels.</li><li>If pixels are found, we append them to a list.</li></ul></li></ul></li><li><p>Line  Fitting: code in<code>Lane.fit_line()</code></p><ul><li>We fit a 2^nd^ degree curve on the given x and y pixel locations.</li><li><code>numpy.polyfit()</code> was used to fit the curve.</li></ul></li><li><p>Sample images are shown for both cases:</p><ul><li><p><em>Lane Detection:</em></p><ul><li>The <strong>red</strong> boxes show the sliding window.</li><li>The <strong>green</strong> lines show the centroid (also the sliding window anchor).</li><li>The <strong>blue</strong> lines are the newly detected lines.
+<span class='md-image'><img alt='alt text' src='./output_images/lane_detect.jpg' title='Lane Detection'></img></span></li></ul></li><li><p><em>Lane Tracking</em>: </p><ul><li>The <strong>green</strong> line shows the line used for tracking.</li><li>The pink/ grey lines are the newly fit lines
+<span class='md-image'><img alt='alt text' src='./output_images/lane_track.jpg' title='Lane Tracking'></img></span></li></ul></li></ul></li></ul><h4><a name='header-c344' class='md-header-anchor '></a>6. Radius of curvature calculation and and the position of the vehicle calculation.</h4><ul><li><p>For RoC:</p><ul><li>This calculation is first done per lane in the Lane class. The code for these can be found in <code>Lane.calc_RoC()</code>. Then the values are averaged for the 2 lines in the Car class. The code to do so is contained in <code>Car.calc_RoC()</code>.</li></ul></li><li><p>For position of vehicle in center of lane:</p><ul><li>We first calculate the position of each lane with <code>Lane.calc_base_position()</code> in pixels.</li><li>The center of the lane can be assumed to be the mid-point of the image width. We can then average the locations of the 2 lanes and calculate the position offset from the center.</li><li>This value is then converted to meters in <code>Car.calc_dist_from_center()</code>.</li></ul></li><li><p>To calculate the RoC and position of car in metric units, we need to find the meters/ pixels scale in x and y axis.</p><ul><li><p>This value was found by looking at the sample images and consulting the US Highway requirements.</p></li><li><p>For the current case,</p><ul><li><code>scale_X = 3.7/420 #(meters/pixels)</code></li><li><code>scale_Y = 3.048/33 #(meters/pixels)</code></li></ul></li></ul></li><li><p>The <em>minimum RoC and width of the lane</em> are also considered to reject or keep the detected lanes. This is done in the function <code>Car.sanity_check()</code>.</p></li></ul><h4><a name='header-c387' class='md-header-anchor '></a>7. Finished images with lane and annotation.</h4><ul><li>This final step of the pipeline is done in <code>Car.draw_lanes()</code>.</li><li>Each <code>Lane</code> object maintains a list of pixels (x, y) locations. We use these values in the <code>cv2.fillPoly()</code> function to fill a polygon to cover the expected lane area.</li><li>This image is then warped back by using the <code>Minv</code> perspective transform matrix. This image is the same size as the ROI. It now needs to be transplanted into the original full resolution image. </li><li>We first mask out the area of the lane (the green colored part) to get <code>mask</code> and <code>mask_inv</code>. We can get the foreground image <code>img_fg</code> and background image <code>img_bg</code> by using <code>cv2.bitwise_and()</code>.</li><li>Then we add the 2 images to get a clean looking colored ROI imge with the lane drawn. We use <code>cv2.addWeighted()</code> to overlay this image onto the colored ROI.</li><li>This ROI image with the lane drawn is then placed into the full size image frame for output.</li><li>The annotations are then added onto the final image in <code>Car.annotate()</code>.</li></ul><p><span class='md-image'><img alt='alt text' src='./output_images/final_output_1.jpg' title='Output 1'></img></span></p><p><span class='md-image'><img alt='alt text' src='./output_images/final_output_2.jpg' title='Output 2'></img></span></p><p><span class='md-image'><img alt='alt text' src='./output_images/no_detect.jpg' title='Output 3'></img></span></p><hr /><hr /><h3><a name='header-c418' class='md-header-anchor '></a>Pipeline (video)</h3><h4><a name='header-c419' class='md-header-anchor '></a>1. Here&#39;s a <a href='./project_video_out.avi' target='_blank' title='Project Video Output'>link to the project video result</a>. Another more <a href='./challenge_video_out.avi' target='_blank' title='Challenge Video Output'>challenging video can be found here</a>.</h4><ul><li>The lanes drawn are smooth and non-wobbly.</li><li>The lanes keep tracking during frames with change in road material and over shadow patches.</li></ul><hr /><h3><a name='header-c429' class='md-header-anchor '></a>Discussion</h3><h4><a name='header-c430' class='md-header-anchor '></a>Salient points:</h4><ul><li>A circular buffer of 1 second (25 fps) data is maintained to smooth data with an averaging filter.</li><li>The adaptive binary thresholding with a flavor of gradient descent, tries to find thresholds for the best binary image. These values remain applicable for a large number of frames. This saves processing time while maintaining best values.</li><li>The histogram based sliding window method is only initiated in the beginning or if tracking is lost for <code>Nt</code> frames. In all other cases, we try to track off of the best (smooth) fit till now. This is helpful in rejecting noisy data and helps with stable lane detection.</li><li>Once lanes are detected, a sanity check is performed to ensure lanes are not too narrow or too wide. </li><li>All values are provided as config dictionaries to allow integrating as part of a larger pipeline.</li></ul><h4><a name='header-c447' class='md-header-anchor '></a>Failure points:</h4><ul><li>Although the pipeline works well for the simple project video and the challenging video, it does not do well in the more challenging (harder_challenge) video.</li><li>If the image is extremely bright (glares) or extremely dark (shadows) for extended periods of time, tracking is lost.</li><li>The pipeline has been constructed for highway/ freeway like lane scenarios, where assumptions have beenmade about lane orientations and positions. We expect the lanes to be straight (kind of) or mildly curved. Tracking is lost if the lanes are snaking for long periods of time.</li><li>If lanes with color different than yellow or white (not applicable for US) are encountered, lane detection will not work.</li></ul><h4><a name='header-c461' class='md-header-anchor '></a>Future work:</h4><ul><li>Would like to implement 3 degree curve fitting for the lanes. I already have that in place for curve fitting, but would like to implement numercial gradient calculation for finding RoC.</li><li>Exploring more color spaces.</li><li>Adding more thresholding operations. I explored edge gradients in x and y but R and V color channels seemed to give me enough information for the current task.</li><li>Exploring a better filtering algorithm. The current averaging works fine but seems less responsive to changes in curves. Ideally we would want to reject noise while integrating good measurements.</li></ul></div>
+</body>
+</html>
