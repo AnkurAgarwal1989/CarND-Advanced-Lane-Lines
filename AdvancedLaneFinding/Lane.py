@@ -284,7 +284,6 @@ class Lane():
     #RoC in pixels
     # check if greater than threshold
     def verify_RoC(self):
-        #self.radius_of_curvature = 1000
         print("RoC calc")
         y_eval = self.bin_image_shape[1]
         pix_roc = ((1 + (2*self.current_fit[0]*y_eval + self.current_fit[1])**2)**1.5) / np.absolute(2*self.current_fit[0])
@@ -297,17 +296,33 @@ class Lane():
     #RoC in meters
     def calc_RoC(self):
         #calculate with best fit
-        self.radius_of_curvature = 10
+        # Fit new polynomials to x,y in world space
+        pts = self.calc_lane_points()
+        pts_x = pts[:, 0]*self.scale_X
+        pts_y = pts[:, 1]*self.scale_Y
+        print(len(pts_x))
+        self.fit_m = np.polyfit(pts_y, pts_x, 2)
+
+        y_eval = self.bin_image_shape[1]*self.scale_Y
+        # Calculate the new radius of curvature
+        self.radius_of_curvature = ((1 + (2*self.fit_m[0]*y_eval + self.fit_m[1])**2)**1.5) / np.absolute(2*self.fit_m[0])
+        # Now our radius of curvature is in meters
     
     #position of base of the lane in meters	
     def calc_base_position(self):
         #calculate with best fit
-        self.base_pos = 15
+        y_eval = self.bin_image_shape[1]
+        # Calculate the new radius of curvature
+        self.base_pos = 0
+        for deg,coeff in enumerate(self.best_fit[::-1]):
+            self.base_pos += coeff*(y_eval**deg)
+        # Now our radius of curvature is in meters
+        print("base", self.base_pos)
             
     #calc lane points in pixels for plotting
     #vertical array of (x,y)
     def calc_lane_points(self):
-        plot_y = np.linspace(0, self.bin_image_shape[0]-1, self.bin_image_shape[0])
+        plot_y = np.linspace(0, self.bin_image_shape[1]-1, self.bin_image_shape[1])
         # Generate x values for each y for plotting
         fit_x = 0
         for deg,coeff in enumerate(self.best_fit[::-1]):

@@ -94,7 +94,7 @@ class Car():
         min_dist_between_lanes = np.min(dist)
         max_dist_between_lanes = np.max(dist)
         print('min dist ', min_dist_between_lanes)
-        print('max dist ', max_dist_between_lanes)
+        print('max dist ', min_dist_between_lanes)
         if min_dist_between_lanes < self.min_lane_width or max_dist_between_lanes  > self.max_lane_width:
             print("Lines are too close or too far")
             return False
@@ -116,7 +116,8 @@ class Car():
         left_base = self.left_Line.base_pos
         right_base = self.right_Line.base_pos
         center_base = (left_base + right_base)/2
-        self.dist_from_center = center_base - (self.bin_image_shape[0]*self.scale_X)
+        self.dist_from_center = (center_base - self.bin_image_shape[0]/2)*self.scale_X
+        print(left_base, right_base, center_base, self.bin_image_shape[0]/2)
    
     def is_right_lane_tracking(self):
         return self.right_Line.is_tracking
@@ -173,4 +174,24 @@ class Car():
             final_roi = cv2.add(img_bg, img_fg)
             out_img = cv2.addWeighted(final_roi, 0.4,roi, 0.6, 0)
         return out_img
+        
+    def annotate_image(self, undist_image):
+        y_shape,x_shape,_ = undist_image.shape
+        fontFace = cv2.FONT_HERSHEY_SIMPLEX
+        fontScale = 1
+        thickness = 2
+        
+        roc_text = 'Radius of Curvature: {:.2f} meters'.format(self.RoC)
+        ret, baseline = cv2.getTextSize(roc_text, fontFace, fontScale, thickness) 
+        x_begin = int(x_shape/2 - ret[0]/2)
+        y_begin = ret[1] + baseline
+        undist_image = cv2.putText(undist_image, roc_text, (x_begin, y_begin), fontFace, fontScale, (255,255,255), thickness)
+        
+        offset_text = 'Vehicle Offset: {:.2f} meters'.format(self.dist_from_center)
+        ret, baseline = cv2.getTextSize(offset_text, fontFace, fontScale, thickness) 
+        x_begin = int(x_shape/2 - ret[0]/2)
+        y_begin = y_shape - ret[1] - baseline
+        undist_image = cv2.putText(undist_image, offset_text, (x_begin, y_begin), fontFace, fontScale, (255,255,255), thickness)
+        return undist_image
+        
         

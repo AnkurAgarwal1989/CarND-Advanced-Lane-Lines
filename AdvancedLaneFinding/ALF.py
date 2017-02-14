@@ -23,8 +23,8 @@ lane_config = {}
 lane_config['bin_image_shape'] = bin_img_shape
 #lane_config['tracking_memory'] = 5##Harder challenge
 lane_config['tracking_memory'] = 25#20
-lane_config['scale_X'] = 3.7/427 #(meters/pixels)
-lane_config['scale_Y'] = 3.048/72 #(meters/pixels)
+lane_config['scale_X'] = 3.7/420 #(meters/pixels)
+lane_config['scale_Y'] = 3.048/33 #(meters/pixels)
 
 lane_config['hist_height'] = 100
 lane_config['sw_height'] = 24
@@ -105,7 +105,10 @@ def _process(img, Car_obj, debug = False):
             
     undist_img = laneUtils.set_ROI(undist_img, ROI_x1, ROI_y1, lane_roi)
     
-    undist_img[0:240,0:640,:] = lane_img
+    #undist_img[0:240,0:640,:] = lane_img
+
+    undist_img = Car_obj.annotate_image(undist_img)
+        
     return Car_obj, undist_img 
     #print("No lane information. Drive carefully")
 #            #TODO Add warning text to out_img and return
@@ -113,7 +116,7 @@ def _process(img, Car_obj, debug = False):
 #    return Car_obj, lane_img
 
 
-def process_image(image_name, Car_obj, debug = False):
+def process_image(image_name, file_name, Car_obj, debug = False):
     image = cv2.imread(image_name)
     if image is None:
         print("Could not open image")
@@ -127,12 +130,12 @@ def process_image(image_name, Car_obj, debug = False):
     return Car_obj, out_image
 
 #Using imageio because OpenCV and 16.04Ubuntu have some weird issues with avi and mp4
-def process_video(video_name, Car_obj, debug = False):
+def process_video(video_name, file_name, Car_obj, debug = False):
     out_video = None
     in_video = imageio.get_reader(video_name)
     fps = in_video.get_meta_data()['fps']
 
-    out_name =(os.path.splitext(os.path.basename(video_name))[0] + '_out.avi')
+    out_name = file_name + '_out.avi'
     out_video = imageio.get_writer(out_name, fps = fps)
     #fourcc = cv2.VideoWriter_fourcc(*'XVID')
     #out_video = cv2.VideoWriter('output.avi',fourcc, 20.0, (640,240))
@@ -156,6 +159,19 @@ def process_video(video_name, Car_obj, debug = False):
     #out_video.release()
     return Car_obj, out_video
     
+def get_data_type(name):
+    print(name)
+    name = os.path.basename(name)
+    file_name, file_ext = os.path.splitext(name)
+    print(file_ext)
+    if file_ext in ['.jpg', '.png']:
+        print("img")
+        return file_name, 'image'
+    if file_ext in ['.mp4', '.avi']:
+        print("video")
+        return file_name, 'video'
+    
+    
 def main():
     
     # print command line arguments
@@ -171,14 +187,15 @@ def main():
     #We know the size of warp and unwarp images   
     #Get the Warp, Unwarp matrices
     M, Minv = laneUtils.get_warp_unwarp_matrices(warp_config)
-    
+    print(input_name)
     #Create a car object to hold everything
     UNDCar = Car.Car(lane_config, bt_config, calibration, M, Minv)
-    '''if (input_name is image):
-        process_image(input_name, UNDCar, True)
-    elif (input_name is video):
-        process_video(input_name, UNDCar, True)'''
-    UNDCar, out_image = process_video(input_name, UNDCar)
+    file_name, file_type = get_data_type(input_name)
+    if (file_type is 'image'):
+        UNDCar, out_image = process_image(input_name, file_name, UNDCar, True)
+    elif (file_type is 'video'):
+        UNDCar, out_image = process_video(input_name, file_name, UNDCar, True)
+    #UNDCar, out_image = process_video(input_name, UNDCar)
     
     
 if __name__ == "__main__":
