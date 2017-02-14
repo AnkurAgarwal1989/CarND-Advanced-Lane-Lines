@@ -360,8 +360,21 @@ Here is a sample image which shows the ROI and the warped image. <TODO Images>
 
 #### Salient points:
 
-- ​
+- A circular buffer of 1 second (25 fps) data is maintained to smooth data with an averaging filter.
+- The adaptive binary thresholding with a flavor of gradient descent, tries to find thresholds for the best binary image. These values remain applicable for a large number of frames. This saves processing time while maintaining best values.
+- The histogram based sliding window method is only initiated in the beginning or if tracking is lost for `Nt` frames. In all other cases, we try to track off of the best (smooth) fit till now. This is helpful in rejecting noisy data and helps with stable lane detection.
+- Once lanes are detected, a sanity check is performed to ensure lanes are not too narrow or too wide. 
+- All values are provided as config dictionaries to allow integrating as part of a larger pipeline.
 
-Briefly discuss any problems / issues you faced in your implementation of this project.  Where will your pipeline likely fail?  What could you do to make it more robust?
+#### Failure points:
 
-Here I'll talk about the approach I took, what techniques I used, what worked and why, where the pipeline might fail and how I might improve it if I were going to pursue this project further.  
+- Although the pipeline works well for the simple project video and the challenging video, it does not do well in the more challenging video.
+- If the image is extremely bright (glares) or extremely dark (shadows) for extended periods of time, tracking is lost.
+- The pipeline has been constructed for highway/ freeway like lane scenarios, where assumptions have beenmade about lane orientations and positions. We expect the lanes to be straight (kind of) or mildly curved. Tracking is lost if the lanes are snaking for long periods of time.
+- If lanes with color different than yellow or white (not applicable for US) are encountered, lane detection will not work.
+
+#### Future work:
+
+- Would like to implement 3 degree curve fitting for the lanes. I already have that in place for curve fitting, but would like to implement numercial gradient calculation for finding RoC.
+- Exploring more color spaces.
+- Adding more thresholding operations. I explored edge gradients in x and y but R and V color channels seemed to give me enough information for the current task.
